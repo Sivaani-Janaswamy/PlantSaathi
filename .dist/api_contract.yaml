@@ -1,0 +1,350 @@
+openapi: 3.0.0
+info:
+  title: PlantSaathi API
+  version: 1.0.0
+  description: |
+    PlantSaathi is a Flutter-based mobile app that helps users identify plants, learn about them, and ask AI-based plant care questions.
+
+servers:
+  - url: https://api.plantsaathi.com/v1
+
+paths:
+  /plants/search:
+    get:
+      tags: [Plants]
+      summary: Search plants by name
+      parameters:
+        - name: q
+          in: query
+          description: Search query for plant name
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of matching plants
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  plants:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PlantSummary'
+              examples:
+                example:
+                  value:
+                    plants:
+                      - id: "1"
+                        common_name: "Rose"
+                        scientific_name: "Rosa"
+                        image_url: "https://example.com/rose.jpg"
+                      - id: "2"
+                        common_name: "Tulsi"
+                        scientific_name: "Ocimum tenuiflorum"
+                        image_url: "https://example.com/tulsi.jpg"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No plants found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /plants/{id}:
+    get:
+      tags: [Plants]
+      summary: Get detailed plant information
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Plant ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Plant details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plant'
+              examples:
+                example:
+                  value:
+                    id: "1"
+                    common_name: "Rose"
+                    scientific_name: "Rosa"
+                    uses: "Ornamental, medicinal"
+                    benefits: "Aesthetic, fragrance"
+                    where_it_grows: "Gardens, parks"
+                    how_to_grow: "Plant in well-drained soil, water regularly"
+                    image_url: "https://example.com/rose.jpg"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Plant not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /plants/identify:
+    post:
+      tags: [Plants]
+      summary: Identify plant using an image
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Image file to identify
+      responses:
+        '200':
+          description: Identified plant details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plant'
+              examples:
+                example:
+                  value:
+                    id: "2"
+                    common_name: "Tulsi"
+                    scientific_name: "Ocimum tenuiflorum"
+                    uses: "Medicinal, religious"
+                    benefits: "Immunity booster, air purifier"
+                    where_it_grows: "Tropical regions, home gardens"
+                    how_to_grow: "Needs sunlight, water moderately"
+                    image_url: "https://example.com/tulsi.jpg"
+        '400':
+          description: Bad request (e.g., missing image)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Plant not identified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ai/ask:
+    post:
+      tags: [AI]
+      summary: Ask AI questions about plants
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIQuestion'
+            examples:
+              example:
+                value:
+                  question: "How often should I water a rose plant?"
+      responses:
+        '200':
+          description: AI-generated answer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIResponse'
+              examples:
+                example:
+                  value:
+                    question: "How often should I water a rose plant?"
+                    answer: "Water rose plants every 2-3 days, keeping the soil moist but not soggy."
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /favorites:
+    get:
+      tags: [Favorites]
+      summary: Get list of saved favorites
+      responses:
+        '200':
+          description: List of favorites
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Favorite'
+              examples:
+                example:
+                  value:
+                    - id: "fav1"
+                      type: "plant"
+                      plant_id: "1"
+                    - id: "fav2"
+                      type: "ai"
+                      text: "Water rose plants every 2-3 days."
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags: [Favorites]
+      summary: Save a favorite plant or AI response
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FavoriteInput'
+            examples:
+              plantExample:
+                value:
+                  type: "plant"
+                  plant_id: "2"
+              aiExample:
+                value:
+                  type: "ai"
+                  text: "Tulsi helps boost immunity."
+      responses:
+        '201':
+          description: Favorite saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Favorite'
+              examples:
+                plantExample:
+                  value:
+                    id: "fav3"
+                    type: "plant"
+                    plant_id: "2"
+                aiExample:
+                  value:
+                    id: "fav4"
+                    type: "ai"
+                    text: "Tulsi helps boost immunity."
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    PlantSummary:
+      type: object
+      required:
+        - id
+        - common_name
+        - scientific_name
+      properties:
+        id:
+          type: string
+        common_name:
+          type: string
+        scientific_name:
+          type: string
+        image_url:
+          type: string
+
+    Plant:
+      allOf:
+        - $ref: '#/components/schemas/PlantSummary'
+        - type: object
+          required:
+            - uses
+            - benefits
+            - where_it_grows
+            - how_to_grow
+          properties:
+            uses:
+              type: string
+            benefits:
+              type: string
+            where_it_grows:
+              type: string
+            how_to_grow:
+              type: string
+
+    AIQuestion:
+      type: object
+      properties:
+        question:
+          type: string
+      required:
+        - question
+
+    AIResponse:
+      type: object
+      required:
+        - question
+        - answer
+      properties:
+        question:
+          type: string
+        answer:
+          type: string
+
+    Favorite:
+      type: object
+      description: |
+        Favorite item. If type = "plant", plant_id must be present. If type = "ai", text must be present.
+      required:
+        - id
+        - type
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [plant, ai]
+        plant_id:
+          type: string
+          nullable: true
+        text:
+          type: string
+          nullable: true
+
+    FavoriteInput:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [plant, ai]
+        plant_id:
+          type: string
+          nullable: true
+        text:
+          type: string
+          nullable: true
+      required:
+        - type
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
