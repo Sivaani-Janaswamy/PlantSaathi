@@ -3,6 +3,9 @@
 ## Overview
 The PlantSaathi backend uses PostgreSQL (managed by Supabase) to store plant data and user favorites. User authentication is handled by Supabase Auth, which manages the `auth.users` table. The database is designed to cache plant information from external APIs and allow users to save their favorite plants or AI responses. This design reduces repeated external API calls through caching and ensures efficient user-specific data retrieval.
 
+- All IDs are UUIDs and are returned as strings in API responses.
+- Timestamps follow ISO 8601 format.
+
 ## Tables
 
 ### users (Supabase Auth)

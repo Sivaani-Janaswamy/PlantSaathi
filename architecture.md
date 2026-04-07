@@ -93,6 +93,30 @@ The system follows a modular, service-oriented architecture:
 - **Service-oriented backend** keeps logic modular and maintainable.
 - **RESTful API** design ensures clear separation between frontend and backend, and easy future integration with other clients.
 
+## Error Handling
+
+- The backend returns standard HTTP status codes (e.g., 400, 404).
+- Errors are returned in a consistent JSON format:
+  {
+    "message": "Error description"
+  }
+- The controller layer is responsible for catching and formatting errors before sending responses.
+
+## Getting Started
+
+To run the PlantSaathi backend locally:
+
+1. Clone the repository
+2. Install dependencies using `npm install`
+3. Set up environment variables:
+   - SUPABASE_URL
+   - SUPABASE_ANON_KEY
+   - PLANT_API_KEY
+   - AI_API_KEY
+4. Run the server using `npm run dev`
+
+The frontend (Flutter app) connects to the backend via the defined REST APIs.
+
 ---
 This architecture balances simplicity, scalability, and rapid development, making PlantSaathi easy to maintain and extend.
 ````
