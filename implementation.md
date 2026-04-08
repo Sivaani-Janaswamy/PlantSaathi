@@ -164,16 +164,16 @@ Set the following environment variables in a `.env` file:
 ## Implementation Progress
 
 ### Backend Setup
-- [ ] Initialize Node.js project
-- [ ] Install dependencies
-- [ ] Setup folder structure
-- [ ] Configure environment variables
+- [x] Initialize Node.js project
+- [x] Install dependencies
+- [x] Setup folder structure
+- [x] Configure environment variables
 
 ### Database (Supabase)
-- [ ] Create plants table
-- [ ] Create favorites table
-- [ ] Add constraints
-- [ ] Add indexes
+- [x] Create plants table
+- [x] Create favorites table
+- [x] Add constraints
+- [x] Add indexes
 
 ### API Development
 
