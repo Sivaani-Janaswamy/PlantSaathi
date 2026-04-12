@@ -30,6 +30,14 @@ exports.getPlantById = async (req, res, next) => {
 	}
 };
 
-exports.identifyPlant = (req, res) => {
-	res.json({ message: 'identifyPlant not implemented' });
+exports.identifyPlant = async (req, res, next) => {
+	try {
+		if (!req.file) {
+			return res.status(400).json({ message: 'Image file is required' });
+		}
+		const plant = await plantService.identifyPlant(req.file);
+		res.status(200).json(plant);
+	} catch (err) {
+		next(err);
+	}
 };

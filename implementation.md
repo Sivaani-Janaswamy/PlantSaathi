@@ -177,32 +177,50 @@ Set the following environment variables in a `.env` file:
 
 ### API Development
 
+
 #### Plants
-- [ ] GET /plants/search
-- [ ] GET /plants/{id}
-- [ ] POST /plants/identify
+- [x] GET /plants/search
+- [x] GET /plants/{id}
+- [x] POST /plants/identify (mocked, not real API)
 
 #### AI
-- [ ] POST /ai/ask
+- [x] POST /ai/ask (real OpenAI-compatible API)
 
 #### Favorites
-- [ ] GET /favorites
-- [ ] POST /favorites
+- [x] GET /favorites
+- [x] POST /favorites
 
 ### Integrations
-- [ ] Plant Identification API integration
-- [ ] AI API integration
+- [ ] Plant Identification API integration (mocked, not real)
+- [x] AI API integration
 
 ### Authentication
+- [x] Verify JWT in backend
 - [ ] Setup Supabase Auth in frontend
-- [ ] Verify JWT in backend
 
 ### Testing
-- [ ] Test APIs using Postman or Swagger
-- [ ] Handle error cases
+- [x] Automated tests for all endpoints
+- [x] Handle error cases
 
 ### Frontend Integration
 - [ ] Connect Flutter app to backend
 - [ ] Test complete user flows
+
+---
+
+## Backend Status
+
+- All core endpoints implemented, tested, and stable
+- Plant identification is mocked (real API integration is a future improvement)
+- AI assistant uses real API
+- All error handling, validation, and auth in place
+- Ready for mobile integration
+
+## Next Features (Optional)
+- Add pagination to /plants/search and /favorites
+- Integrate real Plant Identification API
+- Add OpenAPI/Swagger docs
+- Add admin endpoints for plant update/delete
+- Add rate limiting, logging, and production middleware
 
 ---

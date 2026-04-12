@@ -59,3 +59,80 @@ describe('GET /plants/search', () => {
     expect(res.body).toHaveProperty('message');
   });
 });
+
+describe('POST /plants/identify', () => {
+  const request = require('supertest');
+  const app = require('../app');
+  const supabase = require('../src/config/supabaseClient');
+  const fs = require('fs');
+  const path = require('path');
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should return 200 and plant data on successful identification', async () => {
+    // Mock DB: plant does not exist, so insert will be called
+    supabase.from = jest.fn(() => ({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({ data: null, error: { code: 'PGRST116' } }))
+      })),
+      insert: jest.fn(() => ({
+        select: jest.fn(() => ({
+          single: jest.fn(() => ({ data: { id: '123', common_name: 'Aloe Vera', scientific_name: 'Aloe barbadensis miller' }, error: null }))
+        }))
+      }))
+    }));
+    // Use a sample image buffer
+    const imagePath = path.join(__dirname, 'fixtures', 'sample.jpg');
+    const imageBuffer = fs.existsSync(imagePath) ? fs.readFileSync(imagePath) : Buffer.from('test');
+    const res = await request(app)
+      .post('/plants/identify')
+      .attach('image', imageBuffer, 'sample.jpg');
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('common_name', 'Aloe Vera');
+    expect(res.body).toHaveProperty('scientific_name', 'Aloe barbadensis miller');
+  });
+
+  it('should return 400 if image is missing', async () => {
+    const res = await request(app)
+      .post('/plants/identify');
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toHaveProperty('message');
+  });
+
+  it('should return 500 if DB/API fails', async () => {
+    supabase.from = jest.fn(() => ({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => { throw new Error('DB error'); })
+      })),
+      insert: jest.fn(() => ({
+        select: jest.fn(() => ({
+          single: jest.fn(() => { throw new Error('Insert error'); })
+        }))
+      }))
+    }));
+    const imageBuffer = Buffer.from('test');
+    const res = await request(app)
+      .post('/plants/identify')
+      .attach('image', imageBuffer, 'sample.jpg');
+    expect(res.statusCode).toBe(500);
+    expect(res.body).toHaveProperty('message');
+  });
+
+  it('should return cached plant if already exists', async () => {
+    supabase.from = jest.fn(() => ({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({ data: { id: 'existing', common_name: 'Aloe Vera', scientific_name: 'Aloe barbadensis miller' }, error: null }))
+      })),
+      insert: jest.fn()
+    }));
+    const imageBuffer = Buffer.from('test');
+    const res = await request(app)
+      .post('/plants/identify')
+      .attach('image', imageBuffer, 'sample.jpg');
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('id', 'existing');
+    expect(res.body).toHaveProperty('common_name', 'Aloe Vera');
+  });
+});
