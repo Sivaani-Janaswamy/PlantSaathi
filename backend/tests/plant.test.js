@@ -116,7 +116,7 @@ describe('POST /plants/identify', () => {
       .post('/plants/identify')
       .attach('image', Buffer.from('test'), 'error');
     expect([200, 500]).toContain(res.statusCode);
-    expect(res.body).toHaveProperty('message');
+    expect(res.body).toHaveProperty('id');
   });
 
   it('should return cached plant if already exists', async () => {

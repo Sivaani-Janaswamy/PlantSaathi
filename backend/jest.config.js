@@ -8,4 +8,7 @@ module.exports = {
     '/CMRIT_Vault/',
     '/dev-containers-user-cli/',
   ],
+  clearMocks: true,
+  resetMocks: true,
+  restoreMocks: true,
 };

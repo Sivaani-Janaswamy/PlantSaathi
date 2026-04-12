@@ -1,3 +1,30 @@
+global.fetch = jest.fn();
+
+beforeEach(() => {
+  jest.resetModules();
+  jest.clearAllMocks();
+  aiApiCallCount = 0;
+  fetch.mockImplementation(async () => {
+    aiApiCallCount++;
+    return {
+      ok: true,
+      json: async () => ({
+        choices: [
+          {
+            message: {
+              content: "Mocked AI answer"
+            }
+          }
+        ]
+      })
+    };
+  });
+  const aiService = require('../src/services/ai.service');
+  if (aiService.cache) {
+    aiService.cache.clear();
+  }
+});
+
 const request = require('supertest');
 const express = require('express');
 const aiRoutes = require('../src/routes/ai.routes');
@@ -6,9 +33,17 @@ const aiService = require('../src/services/ai.service');
 
 beforeEach(() => {
   jest.clearAllMocks();
+  aiApiCallCount = 0;
+  if (aiService.cache) {
+    aiService.cache.clear();
+  }
   supabase.auth = supabase.auth || {};
   supabase.auth.getUser = jest.fn(async (token) => ({ data: { user: { id: 'test-user' } }, error: null }));
-  jest.spyOn(aiService, 'askQuestion').mockImplementation(async (question) => 'This is a mock AI answer.');
+  // Mock the real AI API call inside the service
+  aiService.callRealAI = async () => {
+    aiApiCallCount++;
+    return { answer: 'Mocked response' };
+  };
 });
 
 // Main app with real auth middleware
@@ -81,36 +116,19 @@ describe('AI response caching', () => {
   });
 
   it('should call AI API on first request and use cache on second', async () => {
-    let cache = {};
-    supabase.from = jest.fn(() => ({
-      select: jest.fn(() => ({
-        eq: jest.fn(() => ({
-          maybeSingle: async () => {
-            if (cache.hit) {
-              return { data: { answer: 'Cached AI answer' }, error: null };
-            } else {
-              return { data: null, error: null };
-            }
-          }
-        }))
-      })),
-      insert: jest.fn(() => {
-        cache.hit = true;
-        return {};
-      })
-    }));
+    const question = 'What is photosynthesis?';
     aiApiCallCount = 0;
     // First request: should call API
     await request(app)
       .post('/ai/ask')
       .set('Authorization', 'Bearer testtoken')
-      .send({ question: 'What is photosynthesis?' });
+      .send({ question });
     expect(aiApiCallCount).toBe(1);
     // Second request: should use cache
     await request(app)
       .post('/ai/ask')
       .set('Authorization', 'Bearer testtoken')
-      .send({ question: 'What is photosynthesis?' });
+      .send({ question });
     expect(aiApiCallCount).toBe(1);
   });
 });

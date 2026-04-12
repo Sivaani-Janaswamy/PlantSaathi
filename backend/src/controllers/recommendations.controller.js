@@ -8,6 +8,6 @@ exports.getRecommendations = async (req, res, next) => {
     const data = await recommendationsService.getRecommendations(req.user.id);
     res.status(200).json({ data });
   } catch (err) {
-    next(err);
+    return res.status(500).json({ message: err.message });
   }
 };

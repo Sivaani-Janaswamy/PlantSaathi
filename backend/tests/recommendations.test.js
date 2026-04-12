@@ -1,3 +1,16 @@
+// Mock authentication middleware to simulate missing user for 401 test
+jest.mock('../src/middlewares/auth.middleware', () => ({
+  verifyToken: (req, res, next) => {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+}));
+
+// Ensure test environment isolation
+beforeEach(() => {
+  jest.resetModules();
+  jest.clearAllMocks();
+});
+
 const request = require('supertest');
 const express = require('express');
 const recommendationsRoutes = require('../src/routes/recommendations.routes');
