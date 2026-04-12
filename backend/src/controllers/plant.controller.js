@@ -1,14 +1,36 @@
+exports.getRecommendations = async (req, res, next) => {
+	try {
+		if (!req.user || !req.user.id) {
+			return res.status(401).json({ message: 'Unauthorized' });
+		}
+		const plants = await plantService.getRecommendations(req.user.id);
+		res.status(200).json({ plants });
+	} catch (err) {
+		next(err);
+	}
+};
 // Handles plant-related API requests (search, details, identify)
 const plantService = require('../services/plant.service');
 
 exports.searchPlants = async (req, res, next) => {
 	try {
 		const q = req.query.q;
+		let page = parseInt(req.query.page, 10) || 1;
+		let limit = parseInt(req.query.limit, 10) || 10;
 		if (typeof q !== 'string' || q.trim() === '') {
 			return res.status(400).json({ message: 'Missing required query parameter: q' });
 		}
-		const plants = await plantService.searchPlants(q);
-		res.json({ plants });
+		if (page < 1) page = 1;
+		if (limit < 1) limit = 10;
+		const { results, total } = await plantService.searchPlants(q, page, limit);
+		res.json({
+			data: results,
+			pagination: {
+				page,
+				limit,
+				total
+			}
+		});
 	} catch (err) {
 		next(err);
 	}

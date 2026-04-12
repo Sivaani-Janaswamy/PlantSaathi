@@ -1,13 +1,17 @@
 // Contains business logic for favorites management
 const supabase = require('../config/supabaseClient');
 
-exports.getFavorites = async (userId) => {
-	const { data, error } = await supabase
+exports.getFavorites = async (userId, page = 1, limit = 10) => {
+	const from = (page - 1) * limit;
+	const to = from + limit - 1;
+	const query = supabase
 		.from('favorites')
-		.select('*')
-		.eq('user_id', userId);
+		.select('*', { count: 'exact' })
+		.eq('user_id', userId)
+		.range(from, to);
+	const { data, error, count } = await query;
 	if (error) throw new Error(error.message);
-	return data || [];
+	return { results: data || [], total: count || 0 };
 };
 
 exports.createFavorite = async (favoriteData, userId) => {

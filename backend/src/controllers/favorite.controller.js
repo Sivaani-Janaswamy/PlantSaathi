@@ -6,8 +6,19 @@ exports.getFavorites = async (req, res, next) => {
 			return res.status(401).json({ message: 'Unauthorized' });
 		}
 		const userId = req.user.id;
-		const favorites = await favoriteService.getFavorites(userId);
-		res.json({ favorites });
+		let page = parseInt(req.query.page, 10) || 1;
+		let limit = parseInt(req.query.limit, 10) || 10;
+		if (page < 1) page = 1;
+		if (limit < 1) limit = 10;
+		const { results, total } = await favoriteService.getFavorites(userId, page, limit);
+		res.json({
+			data: results,
+			pagination: {
+				page,
+				limit,
+				total
+			}
+		});
 	} catch (err) {
 		next(err);
 	}

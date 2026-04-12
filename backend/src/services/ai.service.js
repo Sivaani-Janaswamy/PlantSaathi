@@ -2,7 +2,10 @@
 
 const supabase = require('../config/supabaseClient');
 
+const { logActivity } = require('../utils/activityLogger');
+
 exports.askQuestion = async (question, userId = null) => {
+	if (userId) logActivity(userId, 'ai_query', { query: question });
 	// For tests: allow jest to mock this method
 	if (process.env.NODE_ENV === 'test' && exports.__mockedAnswer) {
 		return exports.__mockedAnswer;

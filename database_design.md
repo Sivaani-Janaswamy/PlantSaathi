@@ -1,3 +1,48 @@
+# user_activity
+
+| Field         | Type         | Constraints                                                      |
+|-------------- |-------------|------------------------------------------------------------------|
+| id            | uuid         | primary key, default gen_random_uuid()                           |
+| user_id       | uuid         | not null, foreign key → auth.users(id)                           |
+| activity_type | text         | not null, must be one of ('search', 'ai_query', 'plant_view')    |
+| reference_id  | uuid         | nullable (used for plant_id)                                     |
+| query         | text         | nullable (used for search terms or AI questions)                 |
+| created_at    | timestamptz  | default now()                                                    |
+
+**Constraints:**
+- activity_type must be one of ('search', 'ai_query', 'plant_view')
+
+**Description:**
+- Stores user interactions such as searches, AI queries, and plant views
+- Used for personalization and recommendation system
+
+# Personalization & Recommendation Design
+
+The system uses the `user_activity` table to track user behavior, including searches, AI queries, and plant views. Recommendations are generated based on a user's past searches and plant views, enabling a simple but scalable recommendation system that can be extended for more advanced personalization in the future.
+# user_activity
+| Field         | Type    | Constraints                                      |
+|-------------- |---------|--------------------------------------------------|
+| id            | uuid    | primary key, default gen_random_uuid()           |
+| user_id       | uuid    | foreign key → auth.users.id                      |
+| activity_type | text    | (search, ai_query, plant_view)                   |
+| reference_id  | uuid    | nullable, e.g., plant_id                         |
+| query         | text    | for search or AI queries                         |
+| created_at    | timestamptz | default now()                                 |
+
+- **Description:**
+  - Tracks user interactions with the system
+  - Used for personalization and recommendations
+
+# Personalization & Recommendation Design
+
+- The `user_activity` table records user interactions (searches, AI queries, plant views).
+- This data enables:
+  - Personalized plant recommendations based on user interests and history
+  - Trending plant analytics
+  - Improved search suggestions
+- Future extensibility:
+  - The schema supports additional activity types and reference IDs
+  - Enables training of ML models for advanced recommendations and personalization
 # PlantSaathi Database Design
 
 ## Overview
