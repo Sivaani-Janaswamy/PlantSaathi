@@ -1,7 +1,7 @@
 const recommendationsService = require('../services/recommendations.service');
 
 exports.getRecommendations = async (req, res, next) => {
-  if (!req.user) {
+  if (!req.user || !req.user.id) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
   try {

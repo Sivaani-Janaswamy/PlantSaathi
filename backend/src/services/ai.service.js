@@ -12,6 +12,7 @@ exports.askQuestion = async (question, userId = null) => {
 	}
 
 	// 1. Check ai_responses table for cached answer
+	let cachedAnswer = null;
 	try {
 		const { data: cached, error: cacheError } = await supabase
 			.from('ai_responses')

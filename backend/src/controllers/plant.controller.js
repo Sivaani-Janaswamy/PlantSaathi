@@ -57,9 +57,13 @@ exports.identifyPlant = async (req, res, next) => {
 		if (!req.file) {
 			return res.status(400).json({ message: 'Image file is required' });
 		}
-		const plant = await plantService.identifyPlant(req.file);
-		res.status(200).json(plant);
+		try {
+			const plant = await plantService.identifyPlant(req.file);
+			res.status(200).json(plant);
+		} catch (err) {
+			res.status(200).json({ message: err && err.message ? err.message : 'Identification failed' });
+		}
 	} catch (err) {
-		next(err);
+		res.status(200).json({ message: 'Identification failed' });
 	}
 };

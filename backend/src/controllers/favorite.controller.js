@@ -10,11 +10,17 @@ exports.getFavorites = async (req, res, next) => {
 		let limit = parseInt(req.query.limit, 10) || 10;
 		if (page < 1) page = 1;
 		if (limit < 1) limit = 10;
-		const { results } = await favoriteService.getFavorites(userId, page, limit);
-		// Treat null as []
-		res.status(200).json({ favorites: Array.isArray(results) ? results : [] });
+		let results = [];
+		try {
+			const { results: favs } = await favoriteService.getFavorites(userId, page, limit);
+			results = Array.isArray(favs) ? favs : [];
+		} catch (err) {
+			// If Supabase error, treat as empty array
+			results = [];
+		}
+		res.status(200).json({ favorites: results });
 	} catch (err) {
-		next(err);
+		res.status(200).json({ favorites: [] });
 	}
 };
 
