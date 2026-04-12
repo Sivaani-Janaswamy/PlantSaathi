@@ -7,7 +7,9 @@ beforeEach(() => {
   supabase.auth.getUser = jest.fn(async (token) => ({ data: { user: { id: 'test-user' } }, error: null }));
   supabase.from = jest.fn(() => ({
     select: jest.fn(() => ({
-      eq: jest.fn(() => ({ data: [], error: null }))
+      eq: jest.fn(() => ({ data: [], error: null })),
+      in: jest.fn(() => ({ data: [], error: null })),
+      order: jest.fn(() => ({ data: [], error: null }))
     })),
     insert: jest.fn(() => ({
       select: jest.fn(() => ({

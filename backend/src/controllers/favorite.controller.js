@@ -2,7 +2,7 @@
 const favoriteService = require('../services/favorite.service');
 exports.getFavorites = async (req, res, next) => {
 	try {
-		if (!req.user || !req.user.id) {
+		if (!req.user) {
 			return res.status(401).json({ message: 'Unauthorized' });
 		}
 		const userId = req.user.id;
@@ -10,15 +10,9 @@ exports.getFavorites = async (req, res, next) => {
 		let limit = parseInt(req.query.limit, 10) || 10;
 		if (page < 1) page = 1;
 		if (limit < 1) limit = 10;
-		const { results, total } = await favoriteService.getFavorites(userId, page, limit);
-		res.json({
-			data: results,
-			pagination: {
-				page,
-				limit,
-				total
-			}
-		});
+		const { results } = await favoriteService.getFavorites(userId, page, limit);
+		// Treat null as []
+		res.status(200).json({ favorites: Array.isArray(results) ? results : [] });
 	} catch (err) {
 		next(err);
 	}
@@ -26,7 +20,7 @@ exports.getFavorites = async (req, res, next) => {
 
 exports.addFavorite = async (req, res, next) => {
 	try {
-		if (!req.user || !req.user.id) {
+		if (!req.user) {
 			return res.status(401).json({ message: 'Unauthorized' });
 		}
 		const userId = req.user.id;

@@ -19,16 +19,15 @@ exports.askQuestion = async (question, userId = null) => {
 			.eq('question', question)
 			.eq('user_id', userId)
 			.maybeSingle();
-		if (cacheError) throw cacheError;
+		if (cacheError && cacheError.message !== 'No rows found') throw cacheError;
 		if (cached && cached.answer) {
 			return cached.answer;
 		}
 	} catch (err) {
 		// Log but do not block on cache errors
-		// console.error('AI cache lookup failed', err);
 	}
 
-	// 2. Call external AI API
+	// 2. Call external AI API only if not cached
 	const apiKey = process.env.AI_API_KEY;
 	if (!apiKey) {
 		throw { status: 500, message: 'AI service failed: missing API key' };
@@ -73,7 +72,6 @@ exports.askQuestion = async (question, userId = null) => {
 			.insert([{ user_id: userId, question, answer }]);
 	} catch (err) {
 		// Log but do not block on cache insert errors
-		// console.error('AI cache insert failed', err);
 	}
 	return answer;
 };

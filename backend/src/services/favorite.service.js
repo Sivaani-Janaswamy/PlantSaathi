@@ -10,7 +10,7 @@ exports.getFavorites = async (userId, page = 1, limit = 10) => {
 		.eq('user_id', userId)
 		.range(from, to);
 	const { data, error, count } = await query;
-	if (error) throw new Error(error.message);
+	if (error && error.message !== 'No rows found') throw new Error(error.message);
 	return { results: data || [], total: count || 0 };
 };
 

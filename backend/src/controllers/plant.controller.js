@@ -24,7 +24,7 @@ exports.searchPlants = async (req, res, next) => {
 		if (limit < 1) limit = 10;
 		const { results, total } = await plantService.searchPlants(q, page, limit);
 		res.json({
-			data: results,
+			plants: results,
 			pagination: {
 				page,
 				limit,

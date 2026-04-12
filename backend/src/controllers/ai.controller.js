@@ -3,6 +3,9 @@ const aiService = require('../services/ai.service');
 
 exports.askAI = async (req, res, next) => {
 	try {
+		if (!req.user) {
+			return res.status(401).json({ message: 'Unauthorized' });
+		}
 		const { question } = req.body;
 		if (!question || typeof question !== 'string' || question.trim() === '') {
 			return res.status(400).json({ message: 'Missing or invalid question' });

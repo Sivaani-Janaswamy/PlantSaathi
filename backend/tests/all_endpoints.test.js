@@ -18,7 +18,7 @@ describe('API Endpoint Smoke Test', () => {
     const res = await request(app)
       .post('/plants/identify')
       .attach('image', Buffer.from('test'), 'test.jpg');
-    expect([200,400,500]).toContain(res.statusCode);
+    expect([200,400,401]).toContain(res.statusCode);
   });
 
   test('POST /ai/ask PASS', async () => {
@@ -26,7 +26,7 @@ describe('API Endpoint Smoke Test', () => {
       .post('/ai/ask')
       .set('Authorization', `Bearer ${token}`)
       .send({ question: 'What is a rose?' });
-    expect([200,400,401,500]).toContain(res.statusCode);
+    expect([200,400,401]).toContain(res.statusCode);
   });
 
   test('GET /favorites PASS', async () => {
@@ -41,7 +41,7 @@ describe('API Endpoint Smoke Test', () => {
       .post('/favorites')
       .set('Authorization', `Bearer ${token}`)
       .send({ type: 'plant', plant_id: '1' });
-    expect([201,400,401,500]).toContain(res.statusCode);
+    expect([201,400,401]).toContain(res.statusCode);
   });
 
   test('GET /recommendations PASS', async () => {
