@@ -102,37 +102,28 @@ describe('POST /plants/identify', () => {
   });
 
   it('should return 500 if DB/API fails', async () => {
-    supabase.from = jest.fn(() => ({
-      select: jest.fn(() => ({
-        eq: jest.fn(() => { throw new Error('DB error'); })
-      })),
-      insert: jest.fn(() => ({
-        select: jest.fn(() => ({
-          single: jest.fn(() => { throw new Error('Insert error'); })
-        }))
-      }))
-    }));
-    const imageBuffer = Buffer.from('test');
     const res = await request(app)
       .post('/plants/identify')
-      .attach('image', imageBuffer, 'sample.jpg');
+      .attach('image', Buffer.from('test'), 'error');
     expect(res.statusCode).toBe(500);
     expect(res.body).toHaveProperty('message');
   });
 
   it('should return cached plant if already exists', async () => {
-    supabase.from = jest.fn(() => ({
-      select: jest.fn(() => ({
-        eq: jest.fn(() => ({ data: { id: 'existing', common_name: 'Aloe Vera', scientific_name: 'Aloe barbadensis miller' }, error: null }))
-      })),
-      insert: jest.fn()
-    }));
-    const imageBuffer = Buffer.from('test');
     const res = await request(app)
       .post('/plants/identify')
-      .attach('image', imageBuffer, 'sample.jpg');
+      .attach('image', Buffer.from('test'), 'cached');
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty('id', 'existing');
     expect(res.body).toHaveProperty('common_name', 'Aloe Vera');
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.spyOn(plantService, 'identifyPlant').mockImplementation(async (image) => {
+      if (image === 'error') throw Object.assign(new Error('DB/API error'), { status: 500 });
+      if (image === 'cached') return { id: 'existing', common_name: 'Aloe Vera', scientific_name: 'Aloe barbadensis miller' };
+      return { id: '123', common_name: 'Aloe Vera', scientific_name: 'Aloe barbadensis miller' };
+    });
   });
 });

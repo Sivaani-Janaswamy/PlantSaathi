@@ -26,6 +26,12 @@ The PlantSaathi backend uses PostgreSQL (managed by Supabase) to store plant dat
 | created_at      | timestamptz | default now()           |
 | updated_at      | timestamptz | default now()           |
 
+- **Full-text search support:**
+  - A GIN index is recommended on the concatenation of `common_name` and `scientific_name` for scalable, relevant search:
+    ```sql
+    CREATE INDEX plants_fulltext_idx ON plants USING GIN (to_tsvector('english', common_name || ' ' || scientific_name));
+    ```
+
 ### favorites
 | Field      | Type    | Constraints                                      |
 |------------|---------|--------------------------------------------------|
@@ -42,6 +48,43 @@ The PlantSaathi backend uses PostgreSQL (managed by Supabase) to store plant dat
     (type = 'plant' AND plant_id IS NOT NULL AND text IS NULL)
     OR
     (type = 'ai' AND text IS NOT NULL AND plant_id IS NULL)
+
+- **Preventing duplicates:**
+  - Unique constraints are recommended to avoid duplicate favorites:
+    - For plant favorites: (`user_id`, `plant_id`, `type`)
+    - For AI favorites: (`user_id`, `text`, `type`)
+    ```sql
+    ALTER TABLE favorites ADD CONSTRAINT unique_plant_favorite UNIQUE (user_id, plant_id, type);
+    ALTER TABLE favorites ADD CONSTRAINT unique_ai_favorite UNIQUE (user_id, text, type);
+    ```
+### ai_responses
+| Field      | Type    | Constraints                                      |
+|------------|---------|--------------------------------------------------|
+| id         | uuid    | primary key                                      |
+| user_id    | uuid    | foreign key → auth.users.id, nullable            |
+| question   | text    | not null                                         |
+| answer     | text    | not null                                         |
+| created_at | timestamptz | default now()                                 |
+
+- **Purpose:**
+  - Used for caching AI responses
+  - Reduces API cost and latency
+  - Enables analytics and history
+  - Unique constraint on (`user_id`, `question`) ensures no duplicate cache entries per user:
+    ```sql
+    ALTER TABLE ai_responses ADD CONSTRAINT unique_user_question UNIQUE (user_id, question);
+    ```
+# Scalability Considerations
+
+- **Full-text search:**
+  - Use a GIN index on `plants` for efficient, scalable search across `common_name` and `scientific_name`.
+
+- **AI response caching:**
+  - The `ai_responses` table enables fast lookup and deduplication of AI answers, reducing external API calls and supporting analytics.
+
+- **Indexing strategy:**
+  - Ensure indexes on all foreign keys and frequently queried fields (e.g., `favorites.user_id`, `favorites.plant_id`, `ai_responses.user_id`, `ai_responses.question`).
+  - Use unique constraints to prevent duplicate data and maintain data integrity.
 ## Indexes
 
 - Index on `plants.common_name` for faster plant search

@@ -23,39 +23,72 @@ exports.getPlantById = async (id) => {
 	return data || null;
 };
 
-exports.identifyPlant = async (image) => {
-	// 1. Mock external Plant Identification API call
-	// Simulate extracting plant info from image buffer
-	// In real use, send image.buffer to API
-	// For test/dev, return a fixed plant
-	const mockApiResponse = {
-		common_name: 'Aloe Vera',
-		scientific_name: 'Aloe barbadensis miller',
-		image_url: 'https://example.com/aloe.jpg',
-		uses: 'Medicinal, ornamental',
-		benefits: 'Soothes burns, air purification',
-		where_it_grows: 'Tropical, arid regions',
-		how_to_grow: 'Well-drained soil, bright light'
-	};
 
-	// 2. Check if plant already exists in DB (by scientific_name)
+const axios = require('axios');
+const FormData = require('form-data');
+
+exports.identifyPlant = async (image) => {
+	// For tests: allow jest to mock this method
+	if (process.env.NODE_ENV === 'test' && exports.__mockedPlant) {
+		return exports.__mockedPlant;
+	}
+
+	if (!image || !image.buffer) {
+		const err = new Error('Image file is required');
+		err.status = 400;
+		throw err;
+	}
+
+	const apiKey = process.env.PLANT_API_KEY;
+	if (!apiKey) {
+		const err = new Error('Plant API key missing');
+		err.status = 500;
+		throw err;
+	}
+
+	// Prepare multipart/form-data for PlantNet API
+	const form = new FormData();
+	form.append('images', image.buffer, image.originalname || 'plant.jpg');
+
+	let apiResponse;
+	try {
+		const response = await axios.post(
+			`https://my-api.plantnet.org/v2/identify/all?api-key=${apiKey}`,
+			form,
+			{ headers: form.getHeaders(), timeout: 15000 }
+		);
+		apiResponse = response.data;
+	} catch (err) {
+		const error = new Error('Plant identification service failed');
+		error.status = 500;
+		throw error;
+	}
+
+	// Parse response (PlantNet format)
+	const best = apiResponse && apiResponse.results && apiResponse.results[0];
+	if (!best || !best.species || !best.species.scientificNameWithoutAuthor) {
+		const error = new Error('Could not identify plant');
+		error.status = 400;
+		throw error;
+	}
+	const scientific_name = best.species.scientificNameWithoutAuthor;
+	const common_name = (best.species.commonNames && best.species.commonNames[0]) || scientific_name;
+	const image_url = (best.images && best.images[0] && best.images[0].url.o) || null;
+
+	// Check if plant already exists in DB (by scientific_name)
 	const { data: existing, error: findError } = await supabase
 		.from('plants')
 		.select('*')
-		.eq('scientific_name', mockApiResponse.scientific_name)
+		.eq('scientific_name', scientific_name)
 		.single();
 	if (findError && findError.code !== 'PGRST116') throw new Error(findError.message);
 	if (existing) return existing;
 
-	// 3. Insert new plant if not found
+	// Insert new plant if not found
 	const insertPayload = {
-		common_name: mockApiResponse.common_name,
-		scientific_name: mockApiResponse.scientific_name,
-		image_url: mockApiResponse.image_url,
-		uses: mockApiResponse.uses,
-		benefits: mockApiResponse.benefits,
-		where_it_grows: mockApiResponse.where_it_grows,
-		how_to_grow: mockApiResponse.how_to_grow
+		common_name,
+		scientific_name,
+		image_url
 	};
 	const { data: created, error: insertError } = await supabase
 		.from('plants')
