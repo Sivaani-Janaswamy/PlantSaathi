@@ -4,31 +4,10 @@ const router = express.Router();
 const aiController = require('../controllers/ai.controller');
 const auth = require('../middlewares/auth.middleware');
 
-/**
- * @swagger
- * /ai/ask:
- *   post:
- *     summary: Ask the AI assistant a question
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               question:
- *                 type: string
- *     responses:
- *       200:
- *         description: AI answer
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 answer:
- *                   type: string
- */
-router.post('/ask', auth, aiController.askAI);
+router.post('/ask', auth, (req, res, next) => {
+	console.log('[AI ROUTE] Authorization:', req.headers.authorization);
+	console.log('[AI ROUTE] Body:', req.body);
+	return aiController.askAI(req, res, next);
+});
 
 module.exports = router;

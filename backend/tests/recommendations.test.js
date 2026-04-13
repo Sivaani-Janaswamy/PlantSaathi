@@ -1,32 +1,11 @@
-// Mock authentication middleware to simulate missing user for 401 test
-jest.mock('../src/middlewares/auth.middleware', () => ({
-  verifyToken: (req, res, next) => {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
-}));
 
-// Ensure test environment isolation
-beforeEach(() => {
-  jest.resetModules();
-  jest.clearAllMocks();
-});
 
 const request = require('supertest');
-const express = require('express');
-const recommendationsRoutes = require('../src/routes/recommendations.routes');
 const supabase = require('../src/config/supabaseClient');
+const createTestApp = require('./utils/createTestApp');
 
-const app = express();
-app.use(express.json());
-app.use('/recommendations', recommendationsRoutes);
-app.use((err, req, res, next) => {
-  res.status(err.status || 500).json({ message: err.message || 'Internal Server Error' });
-});
-
-// Mock auth middleware
-jest.mock('../src/middlewares/auth.middleware', () => (req, res, next) => {
-  req.user = { id: 'test-user' };
-  next();
+beforeEach(() => {
+  jest.clearAllMocks();
 });
 
 describe('GET /recommendations', () => {
@@ -39,18 +18,29 @@ describe('GET /recommendations', () => {
     supabase.from = jest.fn((table) => {
       if (table === 'user_activity') {
         return {
-          select: () => ({
+            select: () => ({
             eq: () => ({
-              in: () => ({
+                in: () => ({
                 order: () => ({
-                  limit: () => ({ data: [
-                    { activity_type: 'plant_view', reference_id: 'p1' },
-                    { activity_type: 'search', query: 'rose' }
-                  ], error: null })
+                    limit: () => ({
+                    data: [
+                        { activity_type: 'plant_view', reference_id: 'p1' },
+                        { activity_type: 'search', query: 'rose' }
+                    ],
+                    error: null
+                    })
                 })
-              })
+                }),
+                order: () => ({
+                limit: () => ({
+                    data: [
+                    { activity_type: 'plant_view', reference_id: 'p1' }
+                    ],
+                    error: null
+                })
+                })
             })
-          })
+            })
         };
       }
       if (table === 'plants') {
@@ -63,7 +53,10 @@ describe('GET /recommendations', () => {
       }
       return {};
     });
-    const res = await request(app).get('/recommendations');
+    const app = createTestApp();
+    const res = await request(app)
+      .get('/recommendations')
+      .set('Authorization', 'Bearer testtoken');
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty('data');
     expect(Array.isArray(res.body.data)).toBe(true);
@@ -94,7 +87,10 @@ describe('GET /recommendations', () => {
       }
       return {};
     });
-    const res = await request(app).get('/recommendations');
+    const app = createTestApp();
+   const res = await request(app)
+     .get('/recommendations')
+     .set('Authorization', 'Bearer testtoken');
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty('data');
     expect(Array.isArray(res.body.data)).toBe(true);
@@ -102,17 +98,13 @@ describe('GET /recommendations', () => {
   });
 
   it('should require authentication', async () => {
-    // Remove auth mock for this test
-    jest.resetModules();
-    const realApp = express();
-    realApp.use(express.json());
-    // Use real (unmocked) middleware
-    const realRoutes = require('../src/routes/recommendations.routes');
-    realApp.use('/recommendations', realRoutes);
-    realApp.use((err, req, res, next) => {
-      res.status(err.status || 500).json({ message: err.message || 'Internal Server Error' });
+    // Override auth middleware to simulate unauthenticated request
+    const app = createTestApp({
+      authMiddleware: (req, res) => res.status(401).json({ message: 'Unauthorized' })
     });
-    const res = await request(realApp).get('/recommendations');
+    const res = await request(app)
+     .get('/recommendations')
+     .set('Authorization', 'Bearer testtoken');
     expect(res.statusCode).toBe(401);
   });
 });

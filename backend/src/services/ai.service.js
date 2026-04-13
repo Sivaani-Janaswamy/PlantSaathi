@@ -10,16 +10,20 @@ const aiCache = new Map();
 exports.cache = aiCache;
 
 exports.askQuestion = async (question, userId = null) => {
+  console.log('[AI SERVICE] Question:', question);
   if (userId) logActivity(userId, 'ai_query', { query: question });
 
+  console.log('[AI CACHE] Checking cache...');
   // 1. Check in-memory cache at VERY TOP
   const cacheKey = `${userId || ''}::${question}`;
   if (aiCache.has(cacheKey)) {
-    console.log('CACHE HIT');
+    console.log('[AI CACHE] HIT');
     return aiCache.get(cacheKey);
   }
+  console.log('[AI CACHE] MISS → calling API');
 
   // 2. ONLY call external AI API if not cached
+  console.log('[AI API] Calling external API...');
   console.log('API CALLED');
   const apiKey = process.env.AI_API_KEY;
   if (!apiKey) {
@@ -31,17 +35,17 @@ exports.askQuestion = async (question, userId = null) => {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-	'Content-Type': 'application/json',
-	'Authorization': `Bearer ${apiKey}`
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-	model: 'gpt-3.5-turbo',
-	messages: [
-	  { role: 'system', content: 'You are a plant expert.' },
-	  { role: 'user', content: prompt }
-	],
-	max_tokens: 256,
-	temperature: 0.7
+        model: 'gpt-3.5-turbo',
+        messages: [
+          { role: 'system', content: 'You are a plant expert.' },
+          { role: 'user', content: prompt }
+        ],
+        max_tokens: 256,
+        temperature: 0.7
       }),
       timeout: 10000
     });
@@ -54,6 +58,7 @@ exports.askQuestion = async (question, userId = null) => {
       throw new Error('AI API returned invalid response');
     }
     answer = answer.trim();
+    console.log('[AI API] Response received');
   } catch (err) {
     throw { status: 500, message: 'AI service failed' };
   }
