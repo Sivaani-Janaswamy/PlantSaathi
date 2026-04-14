@@ -75,13 +75,25 @@ The system follows a modular, service-oriented architecture:
 5. Confirmation returned to client.
 
 ## External API Integration
-- **Plant Identification API:** Used in `/plants/identify` endpoint. Receives image, returns plant data. Backend may map or enrich this data with local plant info from Supabase. Plant data is cached in Supabase to reduce redundant API calls.
-- **AI API:** Used in `/ai/ask` endpoint. Receives question, returns answer. Backend acts as a proxy and may log, filter, or optionally store questions and responses.
 
-## Supabase Integration
-- **Auth:** User authentication is handled by Supabase directly on the client side (Flutter). The backend verifies user identity by validating Supabase-issued JWT tokens on each request.
-- **Database:** Stores plant catalog, user favorites, and user profiles.
-- **Storage:** Used for storing uploaded plant images (if needed).
+---
+
+## API Endpoints (Updated)
+
+| Endpoint                       | Method | Auth      | Request Body / Params                | Response (200/201)         | Errors (400/401/404/500)         |
+|--------------------------------|--------|-----------|--------------------------------------|----------------------------|----------------------------------|
+| /ai/ask                        | POST   | Bearer    | `{question: string}`                 | `{answer: string}`         | 400, 401, 500                    |
+| /plants/search                 | GET    | Public    | `q` (query param, required)          | `{plants: [...]}`          | 400, 404                         |
+| /plants/{id}                   | GET    | Public    | `{id}` (path param)                  | `{plant: {...}}`           | 404                              |
+| /plants/identify               | POST   | Public    | `image` (form-data, required)        | `{plant: {...}}`           | 400, 500                         |
+| /plants/recommendations        | GET    | Bearer    |                                      | `{plants: [...]}`          | 401, 500                         |
+| /favorites                     | GET    | Bearer    | `page`, `limit` (query, optional)    | `{data: [...], pagination}`| 401, 500                         |
+| /favorites                     | POST   | Bearer    | `{type: plant\|ai, plant_id?, text?}` | `{favorite: {...}}`        | 400, 401, 500                    |
+| /recommendations               | GET    | Bearer    |                                      | `{plants: [...]}`          | 401, 500                         |
+
+- **Status Codes:** 200 (success), 201 (created), 400 (bad request), 401 (unauthorized), 404 (not found), 500 (server error)
+- **All protected routes require:** `Authorization: Bearer <token>`
+
 - All database operations (search, save, retrieve) are performed via Supabase client in the backend.
 
 ## Design Decisions

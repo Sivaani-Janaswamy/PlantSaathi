@@ -42,7 +42,7 @@ describe('POST /favorites', () => {
       .set('Authorization', 'Bearer testtoken')
       .send({ type: 'plant', plant_id: 'plant-1' });
     expect(res.statusCode).toBe(201);
-    expect(res.body).toEqual({}); // supabase mock returns {}
+    expect(res.body).toEqual({ success: true, data: {} }); // supabase mock returns {}
   });
 
   it('should create AI favorite (201)', async () => {
@@ -51,7 +51,7 @@ describe('POST /favorites', () => {
       .set('Authorization', 'Bearer testtoken')
       .send({ type: 'ai', text: 'hello' });
     expect(res.statusCode).toBe(201);
-    expect(res.body).toEqual({}); // supabase mock returns {}
+    expect(res.body).toEqual({ success: true, data: {} }); // supabase mock returns {}
   });
 
   it('should fail for invalid input (400)', async () => {
@@ -60,7 +60,7 @@ describe('POST /favorites', () => {
       .set('Authorization', 'Bearer testtoken')
       .send({ type: 'plant' }); // missing plant_id
     expect(res.statusCode).toBe(400);
-    expect(res.body).toHaveProperty('message');
+    expect(res.body).toEqual(expect.objectContaining({ success: false, message: expect.any(String) }));
   });
 
   it('should fail if unauthorized (401)', async () => {
@@ -76,7 +76,7 @@ describe('POST /favorites', () => {
       .post('/favorites')
       .send({ type: 'plant', plant_id: 'plant-1' });
     expect(res.statusCode).toBe(401);
-    expect(res.body).toEqual({ message: 'Unauthorized' });
+    expect(res.body).toEqual({ success: false, message: 'Unauthorized' });
   });
 });
 
@@ -86,7 +86,7 @@ describe('GET /favorites', () => {
       .get('/favorites')
       .set('Authorization', 'Bearer testtoken');
     expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual({ favorites: [] }); // supabase mock returns []
+    expect(res.body).toEqual({ success: true, data: [] }); // supabase mock returns []
   });
 
   it('should return empty list if none', async () => {
@@ -94,7 +94,7 @@ describe('GET /favorites', () => {
       .get('/favorites')
       .set('Authorization', 'Bearer testtoken');
     expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual({ favorites: [] });
+    expect(res.body).toEqual({ success: true, data: [] });
   });
 
   it('should fail if unauthorized (401)', async () => {
@@ -108,6 +108,6 @@ describe('GET /favorites', () => {
     });
     const res = await request(appNoAuth).get('/favorites');
     expect(res.statusCode).toBe(401);
-    expect(res.body).toEqual({ message: 'Unauthorized' });
+    expect(res.body).toEqual({ success: false, message: 'Unauthorized' });
   });
 });

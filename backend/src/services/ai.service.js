@@ -1,76 +1,100 @@
 // Contains business logic for AI assistant
 
 const supabase = require('../config/supabaseClient');
-
 const { logActivity } = require('../utils/activityLogger');
 
-
-// Global in-memory cache for AI answers
+// Global in-memory cache
 const aiCache = new Map();
 exports.cache = aiCache;
 
+
 exports.askQuestion = async (question, userId = null) => {
   console.log('[AI SERVICE] Question:', question);
-  if (userId) logActivity(userId, 'ai_query', { query: question });
 
-  console.log('[AI CACHE] Checking cache...');
-  // 1. Check in-memory cache at VERY TOP
+  if (userId) {
+    try { logActivity(userId, 'ai_query', { query: question }); } catch (e) { console.warn('[AI LOG] Activity log failed', e); }
+  }
+
+  // ================= CACHE =================
   const cacheKey = `${userId || ''}::${question}`;
+  console.log('[AI CACHE] Checking...');
+
+
+
   if (aiCache.has(cacheKey)) {
     console.log('[AI CACHE] HIT');
     return aiCache.get(cacheKey);
   }
-  console.log('[AI CACHE] MISS → calling API');
 
-  // 2. ONLY call external AI API if not cached
-  console.log('[AI API] Calling external API...');
-  console.log('API CALLED');
+  console.log('[AI CACHE] MISS');
+
+  // ================= API CALL =================
   const apiKey = process.env.AI_API_KEY;
   if (!apiKey) {
-    throw { status: 500, message: 'AI service failed: missing API key' };
+    console.error('[AI ERROR] Missing API key');
+    return "AI service busy, try again later";
   }
-  const prompt = `You are a plant expert. Answer clearly and concisely: ${question}`;
-  let answer;
+
+  let answer = "";
+  let apiTimedOut = false;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => {
+    apiTimedOut = true;
+    controller.abort();
+  }, 10000); // 10 seconds
+
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    console.log('[AI API] Calling OpenAI...');
+    const response = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          { role: 'system', content: 'You are a plant expert.' },
-          { role: 'user', content: prompt }
-        ],
-        max_tokens: 256,
-        temperature: 0.7
+        model: "gpt-4.1-mini",
+        input: `You are a plant expert. Answer clearly: ${question}`
       }),
-      timeout: 10000
+      signal: controller.signal
     });
+    clearTimeout(timeout);
+
     if (!response.ok) {
-      throw new Error(`AI API error: ${response.status}`);
+      // On any non-OK (including 429), return fallback immediately
+      console.error('[AI API] FAILURE:', response.status, response.statusText);
+      return "AI service busy, try again later";
     }
     const data = await response.json();
-    answer = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-    if (!answer) {
-      throw new Error('AI API returned invalid response');
+    console.log('[AI API] RAW RESPONSE:', JSON.stringify(data).slice(0, 200));
+    answer =
+      data.output?.[0]?.content?.[0]?.text ||
+      "AI service busy, try again later";
+    console.log('[AI API] Parsed answer:', answer);
+    if (apiTimedOut) {
+      console.warn('[AI API] Request timed out');
+      return "AI service busy, try again later";
     }
-    answer = answer.trim();
-    console.log('[AI API] Response received');
   } catch (err) {
-    throw { status: 500, message: 'AI service failed' };
+    clearTimeout(timeout);
+    // On any error, always return fallback
+    console.error('[AI ERROR]', err);
+    return "AI service busy, try again later";
   }
 
-  // 3. Save response to in-memory cache and DB AFTER API call
+  // ================= CACHE SAVE =================
   aiCache.set(cacheKey, answer);
-  try {
-    await supabase
-      .from('ai_responses')
-      .insert([{ user_id: userId, question, answer }]);
-  } catch (err) {
-    // Log but do not block on cache insert errors
-  }
-  return answer;
+
+  // ================= DB SAVE (non-blocking) =================
+  (async () => {
+    try {
+      await supabase
+        .from('ai_responses')
+        .insert([{ user_id: userId, question, answer }]);
+      console.log('[AI DB] Saved');
+    } catch (err) {
+      console.warn('[AI DB ERROR]', err.message);
+    }
+  })();
+
+  return answer || "AI service failed, try again";
 };

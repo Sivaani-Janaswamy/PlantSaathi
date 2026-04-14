@@ -13,6 +13,7 @@ app.use(express.json());
 app.use('/ai', aiRoutes);
 app.use((err, req, res, next) => {
   res.status(err.status || 500).json({
+    success: false,
     message: err.message || 'Internal Server Error'
   });
 });
@@ -40,8 +41,7 @@ describe('POST /ai/ask', () => {
       .send({ question: 'How do I care for a rose plant?' });
 
     expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty('answer');
-    expect(typeof res.body.answer).toBe('string');
+    expect(res.body).toEqual({ success: true, data: { answer: 'Mocked answer' } });
   });
 
   it('should return 400 if question is missing', async () => {
@@ -51,6 +51,7 @@ describe('POST /ai/ask', () => {
       .send({});
 
     expect(res.statusCode).toBe(400);
+    expect(res.body).toEqual(expect.objectContaining({ success: false, message: expect.any(String) }));
   });
 
   it('should return 400 if question is empty', async () => {
@@ -60,6 +61,7 @@ describe('POST /ai/ask', () => {
       .send({ question: '' });
 
     expect(res.statusCode).toBe(400);
+    expect(res.body).toEqual(expect.objectContaining({ success: false, message: expect.any(String) }));
   });
 
   it('should return 401 if unauthorized', async () => {
@@ -68,6 +70,8 @@ describe('POST /ai/ask', () => {
       .send({ question: 'How do I care for a rose plant?' });
 
     expect(res.statusCode).toBe(401);
+    // Accept either { message: 'Unauthorized' } or { success: false, message: 'Unauthorized' }
+    expect(res.body).toMatchObject({ message: 'Unauthorized' });
   });
 });
 

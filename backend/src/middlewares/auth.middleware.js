@@ -1,6 +1,7 @@
 const supabase = require('../config/supabaseClient');
 
 async function authMiddleware(req, res, next) {
+	console.log("🔐 AUTH MIDDLEWARE HIT");
 	console.log('[AUTH] Authorization header:', req.headers['authorization']);
 	console.log('[AUTH] User before attach:', req.user);
 	const authHeader = req.headers['authorization'];

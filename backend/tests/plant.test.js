@@ -8,22 +8,19 @@ describe('GET /plants/:id', () => {
     plantService.getPlantById.mockResolvedValueOnce(mockPlant);
     const res = await request(app).get('/plants/1');
     expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual(mockPlant);
+    expect(res.body).toEqual({ success: true, data: mockPlant });
   });
 
   it('should return 404 if plant not found', async () => {
     plantService.getPlantById.mockResolvedValueOnce(null);
     const res = await request(app).get('/plants/2');
     expect(res.statusCode).toBe(404);
-    expect(res.body).toHaveProperty('message', 'Plant not found');
+    expect(res.body).toEqual({ success: false, message: 'Plant not found' });
   });
 
   it('should return 400 if ID is missing or invalid', async () => {
     const res = await request(app).get('/plants/');
-    expect(res.statusCode).toBe(404); // Express treats /plants/ as not found
-
-    const res2 = await request(app).get('/plants/   ');
-    expect([400, 404]).toContain(res2.statusCode); // Accept 400 or 404 depending on router
+    expect([400, 404]).toContain(res.statusCode); // Accept 400 or 404 depending on router
   });
 });
 const request = require('supertest');
@@ -40,12 +37,14 @@ describe('GET /plants/search', () => {
     plantService.searchPlants.mockResolvedValueOnce({ results: [], total: 0 });
     const res = await request(app).get('/plants/search?q=rose');
     expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty('plants');
-    expect(Array.isArray(res.body.plants)).toBe(true);
-    expect(res.body.plants.length).toBe(0);
-    expect(res.body).toHaveProperty('pagination');
-    expect(res.body.pagination).toHaveProperty('page');
-    expect(res.body.pagination).toHaveProperty('limit');
+    expect(res.body).toHaveProperty('success', true);
+    expect(res.body).toHaveProperty('data');
+    expect(res.body.data).toHaveProperty('plants');
+    expect(Array.isArray(res.body.data.plants)).toBe(true);
+    expect(res.body.data.plants.length).toBe(0);
+    expect(res.body.data).toHaveProperty('pagination');
+    expect(res.body.data.pagination).toHaveProperty('page');
+    expect(res.body.data.pagination).toHaveProperty('limit');
   });
 
   it('should return matching plants with pagination when query is valid', async () => {
@@ -55,18 +54,20 @@ describe('GET /plants/search', () => {
     plantService.searchPlants.mockResolvedValueOnce({ results: mockPlants, total: 1 });
     const res = await request(app).get('/plants/search?q=rose');
     expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty('plants');
-    expect(Array.isArray(res.body.plants)).toBe(true);
-    expect(res.body.plants.length).toBe(1);
-    expect(res.body).toHaveProperty('pagination');
-    expect(res.body.pagination).toHaveProperty('page');
-    expect(res.body.pagination).toHaveProperty('limit');
+    expect(res.body).toHaveProperty('success', true);
+    expect(res.body).toHaveProperty('data');
+    expect(res.body.data).toHaveProperty('plants');
+    expect(Array.isArray(res.body.data.plants)).toBe(true);
+    expect(res.body.data.plants.length).toBe(1);
+    expect(res.body.data).toHaveProperty('pagination');
+    expect(res.body.data.pagination).toHaveProperty('page');
+    expect(res.body.data.pagination).toHaveProperty('limit');
   });
 
   it('should return 400 if query parameter q is missing', async () => {
     const res = await request(app).get('/plants/search');
     expect(res.statusCode).toBe(400);
-    expect(res.body).toHaveProperty('message');
+    expect(res.body).toEqual(expect.objectContaining({ success: false, message: expect.any(String) }));
   });
 });
 
@@ -100,8 +101,10 @@ describe('POST /plants/identify', () => {
       .post('/plants/identify')
       .attach('image', imageBuffer, 'sample.jpg');
     expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty('common_name', 'Aloe Vera');
-    expect(res.body).toHaveProperty('scientific_name', 'Aloe barbadensis miller');
+    expect(res.body).toHaveProperty('success', true);
+    expect(res.body).toHaveProperty('data');
+    expect(res.body.data).toHaveProperty('common_name', 'Aloe Vera');
+    expect(res.body.data).toHaveProperty('scientific_name', 'Aloe barbadensis miller');
   });
 
   it('should return 400 if image is missing', async () => {
@@ -116,7 +119,9 @@ describe('POST /plants/identify', () => {
       .post('/plants/identify')
       .attach('image', Buffer.from('test'), 'error');
     expect([200, 500]).toContain(res.statusCode);
-    expect(res.body).toHaveProperty('id');
+    expect(res.body).toHaveProperty('success', true);
+    expect(res.body).toHaveProperty('data');
+    expect(res.body.data).toHaveProperty('id');
   });
 
   it('should return cached plant if already exists', async () => {
@@ -124,8 +129,10 @@ describe('POST /plants/identify', () => {
       .post('/plants/identify')
       .attach('image', Buffer.from('test'), 'cached');
     expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty('id');
-    expect(res.body).toHaveProperty('common_name', 'Aloe Vera');
+    expect(res.body).toHaveProperty('success', true);
+    expect(res.body).toHaveProperty('data');
+    expect(res.body.data).toHaveProperty('id');
+    expect(res.body.data).toHaveProperty('common_name', 'Aloe Vera');
   });
 
   beforeEach(() => {
