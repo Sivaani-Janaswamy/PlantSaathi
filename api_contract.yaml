@@ -1,9 +1,17 @@
+
 openapi: 3.0.0
 info:
   title: PlantSaathi API
   version: 1.0.0
   description: |
     PlantSaathi is a Flutter-based mobile app that helps users identify plants, learn about them, and ask AI-based plant care questions.
+
+    # NOTE FOR FRONTEND DEVELOPERS:
+    # All API responses are wrapped as:
+    #   Success: { "success": true, "data": ... }
+    #   Error:   { "success": false, "message": "..." }
+    # Always check the 'success' field before using 'data'.
+    # For AI, if answer is "AI service busy, try again later", show fallback UI.
 
 servers:
   - url: https://api.plantsaathi.com/v1
@@ -47,7 +55,7 @@ paths:
                           total:
                             type: integer
               examples:
-                example:
+                frontend:
                   value:
                     success: true
                     data:

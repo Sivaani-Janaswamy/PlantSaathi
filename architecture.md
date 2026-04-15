@@ -96,23 +96,64 @@ The system follows a modular, service-oriented architecture:
 
 - All database operations (search, save, retrieve) are performed via Supabase client in the backend.
 
-## Design Decisions
-- **Flutter** chosen for cross-platform mobile development.
-- **Node.js (Express)** for a simple, scalable backend with wide ecosystem support.
-- **Supabase** provides managed Postgres, authentication, and storage, reducing backend complexity.
-- **External APIs** are used for specialized tasks (plant identification, AI) to avoid reinventing complex ML solutions.
-- **Caching plant data** in Supabase reduces dependency on external APIs and improves performance.
-- **Service-oriented backend** keeps logic modular and maintainable.
-- **RESTful API** design ensures clear separation between frontend and backend, and easy future integration with other clients.
 
-## Error Handling
+## Frontend Integration Architecture
 
-- The backend returns standard HTTP status codes (e.g., 400, 404).
-- Errors are returned in a consistent JSON format:
-  {
-    "message": "Error description"
-  }
-- The controller layer is responsible for catching and formatting errors before sending responses.
+### Folder Structure
+
+- See recommended Flutter folder structure below:
+
+```
+/lib
+  /models
+    plant.dart
+    favorite.dart
+    ai_response.dart
+  /services
+    api_service.dart
+    auth_service.dart
+  /screens
+    plant_search_screen.dart
+    plant_detail_screen.dart
+    plant_identify_screen.dart
+    ai_ask_screen.dart
+    favorites_screen.dart
+    recommendations_screen.dart
+    login_screen.dart
+  /widgets
+    plant_card.dart
+    favorite_card.dart
+    error_message.dart
+  /state
+    app_state.dart (Provider or ChangeNotifier)
+  main.dart
+```
+
+### API Integration
+
+- All API calls must use the documented endpoints.
+- All responses are in the format `{ success: true, data: ... }` or `{ success: false, message: ... }`.
+- Use Supabase JWT for authentication and attach as `Authorization: Bearer <token>`.
+
+### Feature Integration
+
+- See "Feature-wise Integration" for request/response and UI mapping for each feature.
+
+### Error Handling
+
+- Always check the `success` field.
+- Display `message` for errors.
+- For AI, handle fallback answer `"AI service busy, try again later"` gracefully.
+
+### State Management
+
+- Use Provider for app-wide state.
+- Use local state for screen-specific logic.
+
+### UI Flow
+
+- Login → Home (tabs: Search, AI, Favorites, Recommendations)
+- Drill-down navigation for details.
 
 ## Getting Started
 
