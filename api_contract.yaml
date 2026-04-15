@@ -28,34 +28,70 @@ paths:
               schema:
                 type: object
                 properties:
-                  plants:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/PlantSummary'
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      plants:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PlantSummary'
+                      pagination:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                          limit:
+                            type: integer
+                          total:
+                            type: integer
               examples:
                 example:
                   value:
-                    plants:
-                      - id: "1"
-                        common_name: "Rose"
-                        scientific_name: "Rosa"
-                        image_url: "https://example.com/rose.jpg"
-                      - id: "2"
-                        common_name: "Tulsi"
-                        scientific_name: "Ocimum tenuiflorum"
-                        image_url: "https://example.com/tulsi.jpg"
+                    success: true
+                    data:
+                      plants:
+                        - id: "1"
+                          common_name: "Rose"
+                          scientific_name: "Rosa"
+                          image_url: "https://example.com/rose.jpg"
+                        - id: "2"
+                          common_name: "Tulsi"
+                          scientific_name: "Ocimum tenuiflorum"
+                          image_url: "https://example.com/tulsi.jpg"
+                      pagination:
+                        page: 1
+                        limit: 10
+                        total: 2
         '400':
           description: Bad request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+              example:
+                success: false
+                message: "Missing required query parameter: q"
         '404':
           description: No plants found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+              example:
+                success: false
+                message: "No plants found"
 
   /plants/{id}:
     get:
@@ -74,30 +110,53 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Plant'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Plant'
               examples:
                 example:
                   value:
-                    id: "1"
-                    common_name: "Rose"
-                    scientific_name: "Rosa"
-                    uses: "Ornamental, medicinal"
-                    benefits: "Aesthetic, fragrance"
-                    where_it_grows: "Gardens, parks"
-                    how_to_grow: "Plant in well-drained soil, water regularly"
-                    image_url: "https://example.com/rose.jpg"
+                    success: true
+                    data:
+                      id: "1"
+                      common_name: "Rose"
+                      scientific_name: "Rosa"
+                      uses: "Ornamental, medicinal"
+                      benefits: "Aesthetic, fragrance"
+                      where_it_grows: "Gardens, parks"
+                      how_to_grow: "Plant in well-drained soil, water regularly"
+                      image_url: "https://example.com/rose.jpg"
         '400':
           description: Bad request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+              example:
+                success: false
+                message: "Invalid or missing id parameter"
         '404':
           description: Plant not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+              example:
+                success: false
+                message: "Plant not found"
 
   /plants/identify:
     post:

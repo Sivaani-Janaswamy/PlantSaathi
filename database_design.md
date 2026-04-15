@@ -1,3 +1,16 @@
+# ai_responses
+
+| Field      | Type    | Constraints                                      |
+|----------- |---------|--------------------------------------------------|
+| id         | uuid    | primary key, default gen_random_uuid()           |
+| user_id    | uuid    | foreign key → auth.users.id, not null            |
+| question   | text    | not null                                         |
+| answer     | text    | not null                                         |
+| created_at | timestamptz | default now()                                 |
+
+**Description:**
+- Stores AI questions and answers for analytics and caching
+
 # user_activity
 
 | Field         | Type         | Constraints                                                      |

@@ -80,16 +80,16 @@ The system follows a modular, service-oriented architecture:
 
 ## API Endpoints (Updated)
 
-| Endpoint                       | Method | Auth      | Request Body / Params                | Response (200/201)         | Errors (400/401/404/500)         |
-|--------------------------------|--------|-----------|--------------------------------------|----------------------------|----------------------------------|
-| /ai/ask                        | POST   | Bearer    | `{question: string}`                 | `{answer: string}`         | 400, 401, 500                    |
-| /plants/search                 | GET    | Public    | `q` (query param, required)          | `{plants: [...]}`          | 400, 404                         |
-| /plants/{id}                   | GET    | Public    | `{id}` (path param)                  | `{plant: {...}}`           | 404                              |
-| /plants/identify               | POST   | Public    | `image` (form-data, required)        | `{plant: {...}}`           | 400, 500                         |
-| /plants/recommendations        | GET    | Bearer    |                                      | `{plants: [...]}`          | 401, 500                         |
-| /favorites                     | GET    | Bearer    | `page`, `limit` (query, optional)    | `{data: [...], pagination}`| 401, 500                         |
-| /favorites                     | POST   | Bearer    | `{type: plant\|ai, plant_id?, text?}` | `{favorite: {...}}`        | 400, 401, 500                    |
-| /recommendations               | GET    | Bearer    |                                      | `{plants: [...]}`          | 401, 500                         |
+| Endpoint                       | Method | Auth      | Request Body / Params                | Response (200/201)                                   | Errors (400/401/404/500)                |
+|--------------------------------|--------|-----------|--------------------------------------|------------------------------------------------------|-----------------------------------------|
+| /ai/ask                        | POST   | Bearer    | `{question: string}`                 | `{ success: true, data: { answer: string } }`        | `{ success: false, message: ... }`      |
+| /plants/search                 | GET    | Public    | `q` (query param, required)          | `{ success: true, data: { plants: [...], pagination: {...} } }` | `{ success: false, message: ... }` |
+| /plants/{id}                   | GET    | Public    | `{id}` (path param)                  | `{ success: true, data: { ...plant fields... } }`    | `{ success: false, message: ... }`      |
+| /plants/identify               | POST   | Public    | `image` (form-data, required)        | `{ success: true, data: { ...plant fields... } }`    | `{ success: false, message: ... }`      |
+| /plants/recommendations        | GET    | Bearer    |                                      | `{ success: true, data: [ ...plants... ] }`          | `{ success: false, message: ... }`      |
+| /favorites                     | GET    | Bearer    | `page`, `limit` (query, optional)    | `{ success: true, data: [ ...favorites... ] }`       | `{ success: false, message: ... }`      |
+| /favorites                     | POST   | Bearer    | `{type: plant\|ai, plant_id?, text?}` | `{ success: true, data: { ...favorite fields... } }` | `{ success: false, message: ... }`      |
+| /recommendations               | GET    | Bearer    |                                      | `{ success: true, data: [ ...plants... ] }`          | `{ success: false, message: ... }`      |
 
 - **Status Codes:** 200 (success), 201 (created), 400 (bad request), 401 (unauthorized), 404 (not found), 500 (server error)
 - **All protected routes require:** `Authorization: Bearer <token>`
