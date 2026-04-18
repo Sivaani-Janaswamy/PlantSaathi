@@ -1,9 +1,23 @@
+
 const supabase = require('../config/supabaseClient');
+const logger = require('../utils/logger');
+
+function uniquePlants(plants) {
+  const seen = new Set();
+  return plants.filter((plant) => {
+    if (!plant || !plant.id || seen.has(plant.id)) {
+      return false;
+    }
+    seen.add(plant.id);
+    return true;
+  });
+}
 
 exports.getRecommendations = async (userId) => {
-  // Step 1: Fetch recent user activity
   let activity = [];
   try {
+    logger.dbQuery('user_activity', 'select');
+    const dbStart = Date.now();
     const { data, error } = await supabase
       .from('user_activity')
       .select('activity_type, reference_id, query')
@@ -11,54 +25,89 @@ exports.getRecommendations = async (userId) => {
       .in('activity_type', ['search', 'plant_view'])
       .order('created_at', { ascending: false })
       .limit(15);
-    if (!error && data) activity = data;
-  } catch {}
-
-  // Step 2: Extract signals
-  const plantIds = activity.filter(a => a.activity_type === 'plant_view' && a.reference_id).map(a => a.reference_id);
-  const searchQueries = activity.filter(a => a.activity_type === 'search' && a.query).map(a => a.query);
-
-  // Step 3: Fetch recommendations
-  let plantResults = [];
-  let searchResults = [];
-
-  if (plantIds.length > 0) {
-    const { data, error } = await supabase
-      .from('plants')
-      .select('*')
-      .in('id', plantIds)
-      .limit(5);
-    if (!error && data) plantResults = data;
+    const dbMs = Date.now() - dbStart;
+    if (!error && Array.isArray(data)) {
+      logger.dbResponse('user_activity', 'select', true, dbMs);
+      activity = data;
+    } else if (error) {
+      logger.dbError(error.message, 'user_activity', 'select');
+      logger.dbResponse('user_activity', 'select', false, dbMs);
+    }
+  } catch (_) {
+    activity = [];
   }
 
-  if (searchQueries.length > 0) {
-    for (const q of searchQueries) {
-      const { data, error } = await supabase
-        .from('plants')
-        .select('*')
-        .or(`common_name.ilike.%${q}%,scientific_name.ilike.%${q}%`)
-        .limit(5);
-      if (!error && data) searchResults.push(...data);
+  const plantIds = [];
+  const searchQueries = [];
+
+  for (const entry of activity) {
+    if (entry.activity_type === 'plant_view' && entry.reference_id) {
+      plantIds.push(entry.reference_id);
+    }
+    if (entry.activity_type === 'search' && entry.query) {
+      searchQueries.push(entry.query);
     }
   }
 
-  // Step 4: Combine results, remove duplicates, limit to 10
-  const all = [...plantResults, ...searchResults];
-  const seen = new Set();
-  const combined = all.filter(p => {
-    if (seen.has(p.id)) return false;
-    seen.add(p.id); return true;
-  }).slice(0, 10);
+  const recommended = [];
 
-  // Step 5: Fallback
-  if (combined.length === 0) {
+  if (plantIds.length > 0) {
+    try {
+      logger.dbQuery('plants', 'recommendByIds');
+      const dbStart = Date.now();
+      const { data, error } = await supabase
+        .from('plants')
+        .select('*')
+        .in('id', plantIds)
+        .limit(5);
+      const dbMs = Date.now() - dbStart;
+      if (!error && Array.isArray(data)) {
+        logger.dbResponse('plants', 'recommendByIds', true, dbMs);
+        recommended.push(...data);
+      } else if (error) {
+        logger.dbError(error.message, 'plants', 'recommendByIds');
+        logger.dbResponse('plants', 'recommendByIds', false, dbMs);
+      }
+    } catch (_) {}
+  }
+
+  if (searchQueries.length > 0) {
+    for (const query of searchQueries) {
+      try {
+        logger.dbQuery('plants', 'recommendByQuery');
+        const dbStart = Date.now();
+        const { data, error } = await supabase
+          .from('plants')
+          .select('*')
+          .or(`common_name.ilike.%${query}%,scientific_name.ilike.%${query}%`)
+          .limit(5);
+        const dbMs = Date.now() - dbStart;
+        if (!error && Array.isArray(data)) {
+          logger.dbResponse('plants', 'recommendByQuery', true, dbMs);
+          recommended.push(...data);
+        } else if (error) {
+          logger.dbError(error.message, 'plants', 'recommendByQuery');
+          logger.dbResponse('plants', 'recommendByQuery', false, dbMs);
+        }
+      } catch (_) {}
+    }
+  }
+
+  const deduped = uniquePlants(recommended).slice(0, 10);
+  if (deduped.length > 0) {
+    return deduped;
+  }
+
+  try {
     const { data, error } = await supabase
       .from('plants')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(10);
-    if (!error && data) return data;
-    return [];
-  }
-  return combined;
+    if (!error && Array.isArray(data)) {
+      return data;
+    }
+  } catch (_) {}
+
+  return [];
 };

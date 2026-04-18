@@ -15,6 +15,15 @@ beforeEach(() => {
       select: jest.fn(() => ({
         single: jest.fn(() => ({ data: {}, error: null }))
       }))
+    })),
+    delete: jest.fn(() => ({
+      eq: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          select: jest.fn(() => ({
+            maybeSingle: jest.fn(() => ({ data: { id: 'fav-1', type: 'plant' }, error: null }))
+          }))
+        }))
+      }))
     }))
   }));
 });
@@ -107,6 +116,29 @@ describe('GET /favorites', () => {
       res.status(err.status || 500).json({ message: err.message || 'Internal Server Error' });
     });
     const res = await request(appNoAuth).get('/favorites');
+    expect(res.statusCode).toBe(401);
+    expect(res.body).toEqual({ success: false, message: 'Unauthorized' });
+  });
+});
+
+describe('DELETE /favorites/:id', () => {
+  it('should remove a favorite (200)', async () => {
+    const res = await request(app)
+      .delete('/favorites/fav-1')
+      .set('Authorization', 'Bearer testtoken');
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({ success: true, data: { id: 'fav-1', type: 'plant' } });
+  });
+
+  it('should fail if unauthorized (401)', async () => {
+    const appNoAuth = express();
+    appNoAuth.use(express.json());
+    const controller = require('../src/controllers/favorite.controller');
+    appNoAuth.delete('/favorites/:id', controller.deleteFavorite);
+    appNoAuth.use((err, req, res, next) => {
+      res.status(err.status || 500).json({ message: err.message || 'Internal Server Error' });
+    });
+    const res = await request(appNoAuth).delete('/favorites/fav-1');
     expect(res.statusCode).toBe(401);
     expect(res.body).toEqual({ success: false, message: 'Unauthorized' });
   });

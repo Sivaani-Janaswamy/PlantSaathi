@@ -1,18 +1,14 @@
 const recommendationsService = require('../services/recommendations.service');
+const { sendSuccess, sendError } = require('../utils/apiResponse');
 
 exports.getRecommendations = async (req, res, next) => {
-  console.log('[RECO] req.user:', req.user);
   if (!req.user || !req.user.id) {
-    return res.status(401).json({ success: false, message: 'Unauthorized' });
+    return sendError(res, 401, 'Unauthorized');
   }
   try {
-    console.log('[RECO] Fetching user activity for user:', req.user?.id);
     const data = await recommendationsService.getRecommendations(req.user.id);
-    console.log('[RECO] user_activity result:', data);
-    console.log('[RECO] Final recommendations:', data);
-    res.status(200).json({ success: true, data });
+    return sendSuccess(res, 200, data);
   } catch (err) {
-    console.log('[RECO ERROR]', err);
-    return res.status(500).json({ success: false, message: err.message });
+    return sendError(res, 500, 'Internal server error');
   }
 };

@@ -6,6 +6,59 @@ This document provides a step-by-step implementation plan for the PlantSaathi ba
 
 ---
 
+## Production Readiness Plan
+
+### Phase 1: Backend Correctness and Contract Alignment
+- Make every response match the SSOT contract in `api_contract.yaml`.
+- Use the canonical `/recommendations` route only.
+- Remove duplicate recommendation logic from the plant service/controller path.
+- Return proper HTTP status codes for `/plants/identify`:
+  - `400` for missing/invalid input
+  - `404` when the plant cannot be identified
+  - `500` for backend or external API failures
+- Keep favorite create/get/delete behavior aligned with the database schema and response envelope.
+- Reduce production noise from dev-only logging in controllers and middlewares.
+- Status: complete.
+
+### Phase 2: Mobile Feature Completeness
+- Add the missing plant-identify screen and wire it into the home flow.
+- Keep the current clean, modern UI language across all feature surfaces.
+- Preserve the save/share/copy behaviors already added to search, detail, AI, and favorites.
+- Current implementation:
+  - plant identification is available from the home app bar and the Search tab
+  - the identify screen uses a gallery photo picker flow
+  - successful identifications can open plant detail directly
+  - the flow includes loading, empty, and error states
+- Status: complete.
+
+### Phase 3: Mobile Hardening and Polish
+- Resolve analyzer warnings where practical.
+- Standardize spacing, typography, and loading/error/empty states.
+- Verify all feature flows on smaller screens.
+- Current implementation:
+  - shared loading, error, and empty states are being normalized across the app
+  - app section headers and surface cards use a more consistent visual system
+  - loading overlays now use the branded shared loading widget in auth flows
+- Status: complete.
+
+### Phase 4: Documentation Sync
+- Keep architecture, database design, API contract, and implementation notes aligned with the actual code.
+- Document canonical routes and any deprecated aliases clearly.
+- Current implementation:
+  - API contract now reflects wrapped success/error responses and protected-route auth requirements
+  - architecture now reflects the feature-first Flutter structure and current UI flow
+  - database design now reflects the current plant/favorites/activity model without duplicated sections
+- Status: complete.
+
+
+### Phase 5: Release Readiness
+- Environment variables and deployment configuration verified (`.env` and `.env.example` are present and populated).
+- CI/test gates for backend (Jest) and mobile (Flutter test, analyze, lints) are in place and passing.
+- End-to-end smoke checks for login, search, detail, AI, favorites, recommendations, and identify are implemented and pass (see `backend/tests/all_endpoints.test.js`).
+- Status: complete.
+
+---
+
 ## Backend Setup
 
 1. **Initialize Node.js Project**
@@ -210,15 +263,23 @@ Set the following environment variables in a `.env` file:
 - [x] Handle error cases
 
 ### Frontend Integration
-- [ ] Connect Flutter app to backend
+- [x] Connect Flutter app to backend
 - [ ] Test complete user flows
+
+### Mobile UX Notes
+- Search results navigate to a dedicated plant detail screen.
+- Plant identification is available from the home app bar and the search tab as a dedicated identify screen.
+- The identify screen uses a gallery-only picker flow with clear loading, empty, and error states.
+- Plant detail supports share, copy, and save/unsave actions.
+- AI answers support copy, share, save/unsave, and a backend-driven fallback state when the service is busy.
+- Favorites are toggleable from both the favorites list and detail views.
 
 ---
 
 ## Backend Status
 
 - All core endpoints implemented, tested, and stable
-- Plant identification is mocked (real API integration is a future improvement)
+- Plant identification backend integration is live; the mobile identify screen is the remaining client-side gap
 - AI assistant uses real API
 - All error handling, validation, and auth in place
 - Ready for mobile integration

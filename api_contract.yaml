@@ -12,6 +12,7 @@ info:
     #   Error:   { "success": false, "message": "..." }
     # Always check the 'success' field before using 'data'.
     # For AI, if answer is "AI service busy, try again later", show fallback UI.
+    # Protected routes require: Authorization: Bearer <token>
 
 servers:
   - url: https://api.plantsaathi.com/v1
@@ -187,18 +188,25 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Plant'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Plant'
               examples:
                 example:
                   value:
-                    id: "2"
-                    common_name: "Tulsi"
-                    scientific_name: "Ocimum tenuiflorum"
-                    uses: "Medicinal, religious"
-                    benefits: "Immunity booster, air purifier"
-                    where_it_grows: "Tropical regions, home gardens"
-                    how_to_grow: "Needs sunlight, water moderately"
-                    image_url: "https://example.com/tulsi.jpg"
+                    success: true
+                    data:
+                      id: "2"
+                      common_name: "Tulsi"
+                      scientific_name: "Ocimum tenuiflorum"
+                      uses: "Medicinal, religious"
+                      benefits: "Immunity booster, air purifier"
+                      where_it_grows: "Tropical regions, home gardens"
+                      how_to_grow: "Needs sunlight, water moderately"
+                      image_url: "https://example.com/tulsi.jpg"
         '400':
           description: Bad request (e.g., missing image)
           content:
@@ -211,11 +219,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '500':
+          description: Identification failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /ai/ask:
     post:
       tags: [AI]
       summary: Ask AI questions about plants
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -232,14 +248,29 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AIResponse'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      answer:
+                        type: string
               examples:
                 example:
                   value:
-                    question: "How often should I water a rose plant?"
-                    answer: "Water rose plants every 2-3 days, keeping the soil moist but not soggy."
+                    success: true
+                    data:
+                      answer: "Water rose plants every 2-3 days, keeping the soil moist but not soggy."
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -249,26 +280,81 @@ paths:
     get:
       tags: [Favorites]
       summary: Get list of saved favorites
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: List of favorites
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Favorite'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Favorite'
               examples:
                 example:
                   value:
-                    - id: "fav1"
+                    success: true
+                    data:
+                      - id: "fav1"
+                        type: "plant"
+                        plant_id: "1"
+                      - id: "fav2"
+                        type: "ai"
+                        text: "Water rose plants every 2-3 days."
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /favorites/{id}:
+    delete:
+      tags: [Favorites]
+      summary: Remove a saved favorite
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Favorite id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Favorite removed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Favorite'
+              examples:
+                example:
+                  value:
+                    success: true
+                    data:
+                      id: "fav1"
                       type: "plant"
                       plant_id: "1"
-                    - id: "fav2"
-                      type: "ai"
-                      text: "Water rose plants every 2-3 days."
-        '400':
-          description: Bad request
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Favorite not found
           content:
             application/json:
               schema:
@@ -277,6 +363,8 @@ paths:
     post:
       tags: [Favorites]
       summary: Save a favorite plant or AI response
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -298,26 +386,73 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Favorite'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Favorite'
               examples:
                 plantExample:
                   value:
-                    id: "fav3"
-                    type: "plant"
-                    plant_id: "2"
+                    success: true
+                    data:
+                      id: "fav3"
+                      type: "plant"
+                      plant_id: "2"
                 aiExample:
                   value:
-                    id: "fav4"
-                    type: "ai"
-                    text: "Tulsi helps boost immunity."
+                    success: true
+                    data:
+                      id: "fav4"
+                      type: "ai"
+                      text: "Tulsi helps boost immunity."
         '400':
           description: Bad request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /recommendations:
+    get:
+      tags: [Recommendations]
+      summary: Get personalized plant recommendations
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Recommendation list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PlantSummary'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     PlantSummary:
       type: object

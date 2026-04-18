@@ -1,1 +1,46 @@
+# --- FLUTTER & DART ---
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.flutter-plugins
+.flutter-plugins-dependencies
+.idea/
+.vscode/
+build/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Pods/
+android/.gradle/
+android/app/build/
+pubspec.lock
+
+# --- PLATFORM/EDITOR ---
+.DS_Store
+*.iml
+*.ipr
+*.iws
+*.swp
+*.lock
+*.log
+*.tmp
+*.bak
+*.orig
+*.rej
+*.sublime-workspace
+*.sublime-project
+*.code-workspace
+
+# --- ENV/SECRETS ---
+.env
+*.env
+*.secret
+*.key
+
+# --- OTHERS ---
+coverage/
+test-results/
+profile/
+*.generated.dart
 .dist/

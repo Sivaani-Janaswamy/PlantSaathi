@@ -52,10 +52,6 @@ const upload = require('../config/multer');
  */
 router.get('/search', plantController.searchPlants);
 
-// GET /plants/recommendations (auth required)
-const auth = require('../middlewares/auth.middleware');
-router.get('/recommendations', auth, plantController.getRecommendations);
-
 /**
  * @swagger
  * /plants/{id}:

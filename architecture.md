@@ -74,6 +74,21 @@ The system follows a modular, service-oriented architecture:
 4. Service stores favorite in Supabase (linked to user).
 5. Confirmation returned to client.
 
+### e) Removing Favorites
+1. User taps unsave/remove from a favorite card or detail action.
+2. Flutter app calls `DELETE /favorites/{id}`.
+3. Controller verifies the authenticated user owns the favorite.
+4. Service deletes the record from Supabase.
+5. The UI refreshes the saved list or toggle state.
+
+### f) Plant Identification
+1. User opens the identify screen from the home app bar or the Search tab.
+2. Flutter app lets the user choose a clear photo from the gallery.
+3. Flutter app calls `POST /plants/identify` with multipart image data.
+4. Controller forwards the request to the plant identification service.
+5. Service maps the identified plant into the canonical plant model and returns it to the client.
+6. The UI can copy, share, or open the identified plant in detail view.
+
 ## External API Integration
 
 ---
@@ -86,9 +101,9 @@ The system follows a modular, service-oriented architecture:
 | /plants/search                 | GET    | Public    | `q` (query param, required)          | `{ success: true, data: { plants: [...], pagination: {...} } }` | `{ success: false, message: ... }` |
 | /plants/{id}                   | GET    | Public    | `{id}` (path param)                  | `{ success: true, data: { ...plant fields... } }`    | `{ success: false, message: ... }`      |
 | /plants/identify               | POST   | Public    | `image` (form-data, required)        | `{ success: true, data: { ...plant fields... } }`    | `{ success: false, message: ... }`      |
-| /plants/recommendations        | GET    | Bearer    |                                      | `{ success: true, data: [ ...plants... ] }`          | `{ success: false, message: ... }`      |
 | /favorites                     | GET    | Bearer    | `page`, `limit` (query, optional)    | `{ success: true, data: [ ...favorites... ] }`       | `{ success: false, message: ... }`      |
 | /favorites                     | POST   | Bearer    | `{type: plant\|ai, plant_id?, text?}` | `{ success: true, data: { ...favorite fields... } }` | `{ success: false, message: ... }`      |
+| /favorites/{id}                | DELETE | Bearer    | `{id}` (path param)                  | `{ success: true, data: { ...favorite fields... } }` | `{ success: false, message: ... }`      |
 | /recommendations               | GET    | Bearer    |                                      | `{ success: true, data: [ ...plants... ] }`          | `{ success: false, message: ... }`      |
 
 - **Status Codes:** 200 (success), 201 (created), 400 (bad request), 401 (unauthorized), 404 (not found), 500 (server error)
@@ -101,10 +116,16 @@ The system follows a modular, service-oriented architecture:
 
 ### Folder Structure
 
-- See recommended Flutter folder structure below:
+- The current Flutter app follows a modular feature-first layout:
 
 ```
 /lib
+  /core
+    theme.dart
+    routes.dart
+    session_manager.dart
+    api_service.dart
+    supabase_config.dart
   /models
     plant.dart
     favorite.dart
@@ -112,20 +133,29 @@ The system follows a modular, service-oriented architecture:
   /services
     api_service.dart
     auth_service.dart
-  /screens
-    plant_search_screen.dart
-    plant_detail_screen.dart
-    plant_identify_screen.dart
-    ai_ask_screen.dart
-    favorites_screen.dart
-    recommendations_screen.dart
-    login_screen.dart
+    plant_service.dart
+    ai_service.dart
+    favorites_service.dart
+    recommendations_service.dart
   /widgets
-    plant_card.dart
-    favorite_card.dart
-    error_message.dart
-  /state
-    app_state.dart (Provider or ChangeNotifier)
+    app_logo_widget.dart
+    app_section_header.dart
+    empty_state_card.dart
+    error_state_card.dart
+    loading_widget.dart
+    primary_action_button.dart
+    skeleton_loader.dart
+  /features
+    splash/
+    auth/
+    home/
+    search/
+    identify/
+    plant_detail/
+    ai/
+    favorites/
+    recommendations/
+    profile/
   main.dart
 ```
 
@@ -135,10 +165,6 @@ The system follows a modular, service-oriented architecture:
 - All responses are in the format `{ success: true, data: ... }` or `{ success: false, message: ... }`.
 - Use Supabase JWT for authentication and attach as `Authorization: Bearer <token>`.
 
-### Feature Integration
-
-- See "Feature-wise Integration" for request/response and UI mapping for each feature.
-
 ### Error Handling
 
 - Always check the `success` field.
@@ -147,13 +173,20 @@ The system follows a modular, service-oriented architecture:
 
 ### State Management
 
-- Use Provider for app-wide state.
-- Use local state for screen-specific logic.
+- The app uses local widget state for screen-specific behavior and lightweight services for backend access.
+- The home shell uses an `IndexedStack` so tab state stays stable when users switch tabs.
+- Session state is persisted through Supabase plus secure storage helpers rather than a large global state container.
 
 ### UI Flow
 
-- Login → Home (tabs: Search, AI, Favorites, Recommendations)
-- Drill-down navigation for details.
+- Splash → auth-aware routing → Login or Home
+- Home uses tabs for Search, AI, Favorites, Discover, and Profile.
+- Search results open a dedicated plant detail page with share, copy, and save actions.
+- Plant identification is reachable from the home app bar and Search tab as a dedicated screen.
+- The identify screen uses a gallery picker, a loading overlay, and clear empty/error states.
+- AI answers support copy/share/save and show a backend-driven fallback state when the service is busy.
+- Favorites can be saved and unsaved directly from the list and from detail views.
+- Recommendations are served from the canonical `/recommendations` endpoint.
 
 ## Getting Started
 

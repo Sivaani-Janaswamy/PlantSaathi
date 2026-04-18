@@ -1,9 +1,10 @@
 // Handles user favorites API requests
 const favoriteService = require('../services/favorite.service');
+const { sendSuccess, sendError } = require('../utils/apiResponse');
 exports.getFavorites = async (req, res, next) => {
 	try {
 		   if (!req.user) {
-			   return res.status(401).json({ success: false, message: 'Unauthorized' });
+			   return sendError(res, 401, 'Unauthorized');
 		   }
 		const userId = req.user.id;
 		let page = parseInt(req.query.page, 10) || 1;
@@ -18,32 +19,52 @@ exports.getFavorites = async (req, res, next) => {
 			// If Supabase error, treat as empty array
 			results = [];
 		}
-		res.status(200).json({ success: true, data: results });
+		return sendSuccess(res, 200, results);
 	   } catch (err) {
-		   return res.status(500).json({ success: false, message: 'Internal server error' });
+		   return sendError(res, 500, 'Internal server error');
 	   }
 };
 
 exports.addFavorite = async (req, res, next) => {
 	try {
 		   if (!req.user) {
-			   return res.status(401).json({ success: false, message: 'Unauthorized' });
+			   return sendError(res, 401, 'Unauthorized');
 		   }
 		const userId = req.user.id;
 		const { type, plant_id, text } = req.body;
 		   if (type !== 'plant' && type !== 'ai') {
-			   return res.status(400).json({ success: false, message: 'Invalid type. Must be "plant" or "ai".' });
+			   return sendError(res, 400, 'Invalid type. Must be "plant" or "ai".');
 		   }
 		   if (type === 'plant' && !plant_id) {
-			   return res.status(400).json({ success: false, message: 'plant_id is required for type "plant".' });
+			   return sendError(res, 400, 'plant_id is required for type "plant".');
 		   }
 		   if (type === 'ai' && (!text || typeof text !== 'string' || text.trim() === '')) {
-			   return res.status(400).json({ success: false, message: 'text is required for type "ai".' });
+			   return sendError(res, 400, 'text is required for type "ai".');
 		   }
 		const data = { type, plant_id: plant_id || null, text: text || null };
 		const favorite = await favoriteService.createFavorite(data, userId);
-		return res.status(201).json({ success: true, data: favorite });
+		return sendSuccess(res, 201, favorite);
 	   } catch (err) {
-		   return res.status(500).json({ success: false, message: 'Internal server error' });
+		   return sendError(res, 500, 'Internal server error');
+	   }
+};
+
+exports.deleteFavorite = async (req, res, next) => {
+	try {
+		   if (!req.user) {
+			   return sendError(res, 401, 'Unauthorized');
+		   }
+		const userId = req.user.id;
+		const { id } = req.params;
+		if (!id) {
+			return sendError(res, 400, 'Favorite id is required.');
+		}
+		const removed = await favoriteService.deleteFavorite(id, userId);
+		if (!removed) {
+			return sendError(res, 404, 'Favorite not found.');
+		}
+		return sendSuccess(res, 200, removed);
+	   } catch (err) {
+		   return sendError(res, 500, 'Internal server error');
 	   }
 };

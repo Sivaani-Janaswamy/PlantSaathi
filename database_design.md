@@ -1,180 +1,111 @@
-# ai_responses
-
-| Field      | Type    | Constraints                                      |
-|----------- |---------|--------------------------------------------------|
-| id         | uuid    | primary key, default gen_random_uuid()           |
-| user_id    | uuid    | foreign key → auth.users.id, not null            |
-| question   | text    | not null                                         |
-| answer     | text    | not null                                         |
-| created_at | timestamptz | default now()                                 |
-
-**Description:**
-- Stores AI questions and answers for analytics and caching
-
-# user_activity
-
-| Field         | Type         | Constraints                                                      |
-|-------------- |-------------|------------------------------------------------------------------|
-| id            | uuid         | primary key, default gen_random_uuid()                           |
-| user_id       | uuid         | not null, foreign key → auth.users(id)                           |
-| activity_type | text         | not null, must be one of ('search', 'ai_query', 'plant_view')    |
-| reference_id  | uuid         | nullable (used for plant_id)                                     |
-| query         | text         | nullable (used for search terms or AI questions)                 |
-| created_at    | timestamptz  | default now()                                                    |
-
-**Constraints:**
-- activity_type must be one of ('search', 'ai_query', 'plant_view')
-
-**Description:**
-- Stores user interactions such as searches, AI queries, and plant views
-- Used for personalization and recommendation system
-
-# Personalization & Recommendation Design
-
-The system uses the `user_activity` table to track user behavior, including searches, AI queries, and plant views. Recommendations are generated based on a user's past searches and plant views, enabling a simple but scalable recommendation system that can be extended for more advanced personalization in the future.
-# user_activity
-| Field         | Type    | Constraints                                      |
-|-------------- |---------|--------------------------------------------------|
-| id            | uuid    | primary key, default gen_random_uuid()           |
-| user_id       | uuid    | foreign key → auth.users.id                      |
-| activity_type | text    | (search, ai_query, plant_view)                   |
-| reference_id  | uuid    | nullable, e.g., plant_id                         |
-| query         | text    | for search or AI queries                         |
-| created_at    | timestamptz | default now()                                 |
-
-- **Description:**
-  - Tracks user interactions with the system
-  - Used for personalization and recommendations
-
-# Personalization & Recommendation Design
-
-- The `user_activity` table records user interactions (searches, AI queries, plant views).
-- This data enables:
-  - Personalized plant recommendations based on user interests and history
-  - Trending plant analytics
-  - Improved search suggestions
-- Future extensibility:
-  - The schema supports additional activity types and reference IDs
-  - Enables training of ML models for advanced recommendations and personalization
 # PlantSaathi Database Design
 
 ## Overview
-The PlantSaathi backend uses PostgreSQL (managed by Supabase) to store plant data and user favorites. User authentication is handled by Supabase Auth, which manages the `auth.users` table. The database is designed to cache plant information from external APIs and allow users to save their favorite plants or AI responses. This design reduces repeated external API calls through caching and ensures efficient user-specific data retrieval.
+PlantSaathi uses Supabase Postgres for plant data, favorites, AI response caching, and lightweight personalization metadata. Authentication is handled by Supabase Auth, so user accounts live in `auth.users` and are referenced by foreign key where needed.
 
-- All IDs are UUIDs and are returned as strings in API responses.
-- Timestamps follow ISO 8601 format.
+## Core Principles
+- All IDs are UUIDs and are returned as strings in the API.
+- Timestamps use ISO 8601 / `timestamptz`.
+- The app treats plant and AI favorites as toggleable saved records.
+- Plant data is cached locally in Postgres to reduce repeated external API calls.
 
 ## Tables
 
-### users (Supabase Auth)
-- Managed by Supabase Auth as `auth.users`
-- Fields include: `id` (uuid, primary key), email, and other authentication-related fields
+### `plants`
+Stores canonical plant metadata returned by search, detail, identify, and recommendations flows.
 
-### plants
-| Field           | Type    | Constraints                |
-|-----------------|---------|----------------------------|
-| id              | uuid    | primary key                |
-| common_name     | text    | not null                   |
-| scientific_name | text    | not null                   |
-| uses            | text    |                            |
-| benefits        | text    |                            |
-| where_it_grows  | text    |                            |
-| how_to_grow     | text    |                            |
-| image_url       | text    |                            |
-| created_at      | timestamptz | default now()           |
-| updated_at      | timestamptz | default now()           |
+| Field | Type | Constraints |
+|---|---|---|
+| id | uuid | primary key |
+| common_name | text | not null |
+| scientific_name | text | not null |
+| uses | text | nullable |
+| benefits | text | nullable |
+| where_it_grows | text | nullable |
+| how_to_grow | text | nullable |
+| image_url | text | nullable |
+| created_at | timestamptz | default now() |
+| updated_at | timestamptz | default now() |
 
-- **Full-text search support:**
-  - A GIN index is recommended on the concatenation of `common_name` and `scientific_name` for scalable, relevant search:
-    ```sql
-    CREATE INDEX plants_fulltext_idx ON plants USING GIN (to_tsvector('english', common_name || ' ' || scientific_name));
-    ```
+Recommended indexes:
+- `plants.common_name`
+- `plants.scientific_name`
+- full-text search across `common_name` and `scientific_name`
 
-### favorites
-| Field      | Type    | Constraints                                      |
-|------------|---------|--------------------------------------------------|
-| id         | uuid    | primary key                                      |
-| user_id    | uuid    | foreign key → auth.users.id, not null            |
-| plant_id   | uuid    | foreign key → plants.id, nullable                |
-| text       | text    | nullable (for AI responses)                      |
-| type       | text    | check (type in ('plant', 'ai')), not null        |
-| created_at | timestamptz | default now()                                 |
-| updated_at | timestamptz | default now()                                 |
+### `favorites`
+Stores saved plant or AI items for each user.
 
-- **Constraint:**
-  - A CHECK constraint enforces:
-    (type = 'plant' AND plant_id IS NOT NULL AND text IS NULL)
-    OR
-    (type = 'ai' AND text IS NOT NULL AND plant_id IS NULL)
+| Field | Type | Constraints |
+|---|---|---|
+| id | uuid | primary key |
+| user_id | uuid | foreign key → `auth.users.id`, not null |
+| plant_id | uuid | foreign key → `plants.id`, nullable |
+| text | text | nullable |
+| type | text | check in (`plant`, `ai`), not null |
+| created_at | timestamptz | default now() |
+| updated_at | timestamptz | default now() |
 
-- **Preventing duplicates:**
-  - Unique constraints are recommended to avoid duplicate favorites:
-    - For plant favorites: (`user_id`, `plant_id`, `type`)
-    - For AI favorites: (`user_id`, `text`, `type`)
-    ```sql
-    ALTER TABLE favorites ADD CONSTRAINT unique_plant_favorite UNIQUE (user_id, plant_id, type);
-    ALTER TABLE favorites ADD CONSTRAINT unique_ai_favorite UNIQUE (user_id, text, type);
-    ```
-### ai_responses
-| Field      | Type    | Constraints                                      |
-|------------|---------|--------------------------------------------------|
-| id         | uuid    | primary key                                      |
-| user_id    | uuid    | foreign key → auth.users.id, nullable            |
-| question   | text    | not null                                         |
-| answer     | text    | not null                                         |
-| created_at | timestamptz | default now()                                 |
+Validation rules:
+- If `type = 'plant'`, then `plant_id` must be present and `text` must be null.
+- If `type = 'ai'`, then `text` must be present and `plant_id` must be null.
 
-- **Purpose:**
-  - Used for caching AI responses
-  - Reduces API cost and latency
-  - Enables analytics and history
-  - Unique constraint on (`user_id`, `question`) ensures no duplicate cache entries per user:
-    ```sql
-    ALTER TABLE ai_responses ADD CONSTRAINT unique_user_question UNIQUE (user_id, question);
-    ```
-# Scalability Considerations
+Recommended uniqueness:
+- `(user_id, plant_id, type)` for plant favorites
+- `(user_id, text, type)` for AI favorites
 
-- **Full-text search:**
-  - Use a GIN index on `plants` for efficient, scalable search across `common_name` and `scientific_name`.
+Toggle behavior:
+- Save creates a favorite if it does not already exist.
+- Unsave removes the existing favorite row by `id`.
+- The mobile app reads the current favorite state to keep detail/AI/save buttons in sync.
 
-- **AI response caching:**
-  - The `ai_responses` table enables fast lookup and deduplication of AI answers, reducing external API calls and supporting analytics.
+Recommended indexes:
+- `favorites.user_id`
+- `favorites.plant_id`
 
-- **Indexing strategy:**
-  - Ensure indexes on all foreign keys and frequently queried fields (e.g., `favorites.user_id`, `favorites.plant_id`, `ai_responses.user_id`, `ai_responses.question`).
-  - Use unique constraints to prevent duplicate data and maintain data integrity.
-## Indexes
+### `ai_responses`
+Stores AI questions and answers for optional caching and analytics.
 
-- Index on `plants.common_name` for faster plant search
-- Index on `favorites.user_id` for fast retrieval of user favorites
-- Index on `favorites.plant_id` for efficient relationship queries
-## Optional Uniqueness Constraint
+| Field | Type | Constraints |
+|---|---|---|
+| id | uuid | primary key |
+| user_id | uuid | foreign key → `auth.users.id`, nullable |
+| question | text | not null |
+| answer | text | not null |
+| created_at | timestamptz | default now() |
 
-- A unique constraint can be applied on (`common_name`, `scientific_name`) in the `plants` table to avoid duplicate plant entries.
+Recommended uniqueness:
+- `(user_id, question)` to avoid duplicate cached answers per user
+
+### `user_activity`
+Tracks lightweight user behavior for personalization and recommendations.
+
+| Field | Type | Constraints |
+|---|---|---|
+| id | uuid | primary key |
+| user_id | uuid | foreign key → `auth.users.id`, not null |
+| activity_type | text | check in (`search`, `ai_query`, `plant_view`) |
+| reference_id | uuid | nullable, typically a plant id |
+| query | text | nullable, used for search or AI text |
+| created_at | timestamptz | default now() |
+
+Usage:
+- Search activity helps surface recommendations.
+- Plant view activity can feed the recommendations engine.
+- AI query activity can support analytics and future personalization.
 
 ## Relationships
-- One user (`auth.users`) → many favorites (`favorites.user_id`)
-- One plant (`plants`) → many favorites (`favorites.plant_id`)
-
-## ER Diagram
-
-```
-+-----------+         +-----------+         +-----------+
-|  users    | 1     * | favorites | *     1 |  plants   |
-|-----------|---------|-----------|---------|-----------|
-| id (PK)   |<------->| user_id   |         | id (PK)   |
-| ...       |         | plant_id  |<------->| ...       |
-+-----------+         | text      |         +-----------+
-                     | type      |
-                     | created_at|
-                     +-----------+
-```
+- One user (`auth.users`) → many favorites
+- One user (`auth.users`) → many AI response cache rows
+- One user (`auth.users`) → many activity rows
+- One plant (`plants`) → many favorites
 
 ## Design Decisions
-- **Supabase Auth** is used for user management, so user records are not duplicated in the app database.
-- **Plant data** is cached in the `plants` table to reduce external API calls and improve performance.
-- **Favorites** table supports both plant and AI response favorites using a `type` field and nullable columns.
-- **Simple constraints** ensure data integrity without overcomplicating the schema.
-- **Timestamps** (`created_at`) are included for tracking and sorting records.
+- Supabase Auth is the source of truth for identity.
+- Plant identification can cache identified plants into `plants` when the backend resolves a match.
+- Favorites are modeled as explicit rows so the mobile app can toggle save/unsave cleanly.
+- `user_activity` is intentionally lightweight so future recommendation logic can evolve without changing the client contract.
 
-This schema is designed for clarity, maintainability, and efficient support of PlantSaathi's core features.
+## Notes for Future Work
+- If search pagination becomes server-driven, keep the response envelope unchanged and add pagination metadata only.
+- If recommendation ranking changes, keep `/recommendations` as the canonical public contract and evolve the backend implementation behind it.
+- If image storage is added later, keep the plant identify response shape stable so the mobile app does not need a breaking change.

@@ -66,8 +66,21 @@ const auth = require('../middlewares/auth.middleware');
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Favorite'
+ *   delete:
+ *     summary: Remove a favorite by id
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Favorite id
+ *     responses:
+ *       200:
+ *         description: Favorite removed
  */
 router.get('/', auth, favoriteController.getFavorites);
 router.post('/', auth, favoriteController.addFavorite);
+router.delete('/:id', auth, favoriteController.deleteFavorite);
 
 module.exports = router;
