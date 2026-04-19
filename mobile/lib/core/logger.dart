@@ -18,4 +18,9 @@ class Logger {
     // ignore: avoid_print
     print('[API ERROR] $message ($endpoint)');
   }
+
+  void apiWarning(String message, String endpoint) {
+    // ignore: avoid_print
+    print('[API WARNING] $message ($endpoint)');
+  }
 }

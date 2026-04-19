@@ -3,7 +3,6 @@ const router = express.Router();
 const favoriteController = require('../controllers/favorite.controller');
 const auth = require('../middlewares/auth.middleware');
 
-
 /**
  * @swagger
  * /favorites:

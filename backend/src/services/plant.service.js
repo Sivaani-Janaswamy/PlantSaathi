@@ -6,6 +6,7 @@ const logger = require('../utils/logger');
 const { logActivity } = require('../utils/activityLogger');
 
 exports.searchPlants = async (q, page = 1, limit = 10, userId = null) => {
+	console.log("Searching plants with query:", q);
 	if (userId) logActivity(userId, 'search', { query: q });
 	const from = (page - 1) * limit;
 	const to = from + limit - 1;
@@ -22,6 +23,7 @@ exports.searchPlants = async (q, page = 1, limit = 10, userId = null) => {
 	if (error) {
 		logger.dbError(error.message, 'plants', 'search');
 		logger.dbResponse('plants', 'search', false, dbMs);
+		console.log("Error:", error);
 		throw new Error(error.message);
 	}
 	logger.dbResponse('plants', 'search', true, dbMs);
