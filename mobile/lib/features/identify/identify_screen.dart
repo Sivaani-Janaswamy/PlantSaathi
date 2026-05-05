@@ -130,7 +130,7 @@ class _IdentifyScreenState extends State<IdentifyScreen> {
       body: Stack(
         children: [
           ListView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+            padding: const EdgeInsets.all(AppSpacing.xl),
             children: [
               const AppSectionHeader(
                 title: 'Identify from a photo',
@@ -200,7 +200,7 @@ class _IdentifyScreenState extends State<IdentifyScreen> {
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(22),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                       boxShadow: const [
                         BoxShadow(
                           color: Color(0x18000000),
@@ -252,7 +252,7 @@ class _ImagePickerCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0F000000),
@@ -278,7 +278,7 @@ class _ImagePickerCard extends StatelessWidget {
               width: double.infinity,
               decoration: BoxDecoration(
                 color: Color.fromARGB((0.06 * 255).round(), primary.red, primary.green, primary.blue),
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 border: Border.all(
                   color: Color.fromARGB((0.12 * 255).round(), primary.red, primary.green, primary.blue),
                 ),
@@ -305,7 +305,7 @@ class _ImagePickerCard extends StatelessWidget {
             )
           else
             ClipRRect(
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               child: Image.file(
                 currentImage,
                 height: 240,
@@ -364,7 +364,7 @@ class _ResultCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0F000000),
@@ -386,7 +386,7 @@ class _ResultCard extends StatelessWidget {
           const SizedBox(height: 12),
           if (currentImage != null)
             ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               child: Image.file(
                 currentImage,
                 height: 160,
@@ -435,8 +435,8 @@ class _ResultCard extends StatelessWidget {
                 icon: const Icon(Icons.arrow_forward_rounded, size: 18),
                 label: const Text('Open details'),
                 style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
                 ),
               ),
             ],

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/design_tokens.dart';
+
 import '../../models/favorite.dart';
 import '../../services/favorites_service.dart';
 import '../../widgets/app_section_header.dart';
@@ -93,7 +95,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         children: [
           const AppSectionHeader(
             title: 'Saved favorites',
@@ -130,7 +132,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     decoration: BoxDecoration(
                       color: Colors.red.shade400,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     child: const Icon(Icons.delete_rounded, color: Colors.white),
                   ),
@@ -173,7 +175,7 @@ class _FavoriteCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0F000000),
@@ -189,7 +191,7 @@ class _FavoriteCard extends StatelessWidget {
             height: 54,
             decoration: BoxDecoration(
               color: Color.fromARGB((0.12 * 255).round(), primary.red, primary.green, primary.blue),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Icon(
               isAi ? Icons.chat_bubble_rounded : Icons.eco_rounded,

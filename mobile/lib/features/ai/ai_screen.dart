@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../core/design_tokens.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -155,7 +157,7 @@ class _AiScreenState extends State<AiScreen> {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       children: [
         const AppSectionHeader(
           title: 'AI plant assistant',
@@ -362,7 +364,7 @@ class _AnswerCard extends StatelessWidget {
                   backgroundColor: saved ? primary : null,
                   foregroundColor: saved ? Colors.white : null,
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
                 ),
               ),
             ],

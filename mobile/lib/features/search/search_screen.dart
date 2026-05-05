@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/design_tokens.dart';
 import '../../models/plant.dart';
 import '../../services/plant_service.dart';
 import '../../widgets/app_section_header.dart';
@@ -67,7 +68,7 @@ class _SearchScreenState extends State<SearchScreen> {
     final primary = theme.colorScheme.primary;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       children: [
         const AppSectionHeader(
           title: 'Search plants',
@@ -78,7 +79,7 @@ class _SearchScreenState extends State<SearchScreen> {
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x0F000000),
@@ -110,7 +111,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 icon: Icon(Icons.arrow_forward_rounded, color: primary),
               ),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              contentPadding: const EdgeInsets.all(AppSpacing.lg),
             ),
           ),
         ),
@@ -131,7 +132,7 @@ class _SearchScreenState extends State<SearchScreen> {
           ...List.generate(
             3,
             (index) => const Padding(
-              padding: EdgeInsets.only(bottom: 14),
+              padding: EdgeInsets.only(bottom: AppSpacing.md),
               child: SkeletonPlantCard(),
             ),
           )
@@ -152,7 +153,7 @@ class _SearchScreenState extends State<SearchScreen> {
         else
           ..._results.map(
             (plant) => Padding(
-              padding: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: _PlantCard(plant: plant),
             ),
           ),
@@ -181,11 +182,11 @@ class _PlantCard extends StatelessWidget {
             ),
           );
         },
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x0F000000),
@@ -195,7 +196,7 @@ class _PlantCard extends StatelessWidget {
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Row(
               children: [
                 Container(
@@ -203,7 +204,7 @@ class _PlantCard extends StatelessWidget {
                   height: 60,
                   decoration: BoxDecoration(
                     color: Color.fromARGB((0.10 * 255).round(), primary.red, primary.green, primary.blue),
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Icon(Icons.eco_rounded, color: primary),
                 ),

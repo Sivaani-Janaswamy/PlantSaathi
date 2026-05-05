@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../core/design_tokens.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -141,7 +143,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return ListView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               children: const [
                 SkeletonHeader(),
                 SizedBox(height: 18),
@@ -154,7 +156,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
 
           if (snapshot.hasError) {
             return ListView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               children: const [
                 ErrorStateCard(message: 'Could not load plant details right now.'),
               ],
@@ -164,7 +166,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
           final plant = snapshot.data?.plant;
           if (plant == null) {
             return ListView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               children: const [
                 EmptyStateCard(
                   title: 'Plant not found',
@@ -176,7 +178,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
           }
 
           return ListView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+            padding: const EdgeInsets.all(AppSpacing.xl),
             children: [
               Container(
                 padding: const EdgeInsets.all(20),
@@ -199,7 +201,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
                       height: 62,
                       decoration: BoxDecoration(
                         color: Color.fromARGB((0.12 * 255).round(), primary.red, primary.green, primary.blue),
-                        borderRadius: BorderRadius.circular(18),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                       child: Icon(Icons.eco_rounded, color: primary, size: 30),
                     ),
@@ -353,7 +355,7 @@ class _ActionChipButton extends StatelessWidget {
         foregroundColor: filled ? Colors.white : null,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.md),
         ),
       ),
     );

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/design_tokens.dart';
+
 import '../../models/plant.dart';
 import '../../services/recommendations_service.dart';
 import '../../widgets/app_section_header.dart';
@@ -51,7 +53,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         children: [
           const AppSectionHeader(
             title: 'Recommended for you',
@@ -102,7 +104,7 @@ class _RecommendationCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0F000000),
@@ -118,7 +120,7 @@ class _RecommendationCard extends StatelessWidget {
             height: 56,
             decoration: BoxDecoration(
               color: Color.fromARGB((0.12 * 255).round(), primary.red, primary.green, primary.blue),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Icon(Icons.local_florist_rounded, color: primary),
           ),
