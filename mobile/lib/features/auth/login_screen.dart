@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../core/routes.dart';
+import '../../core/design_tokens.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/app_logo_widget.dart';
 import '../../widgets/loading_widget.dart';
@@ -23,12 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _showSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: const TextStyle(fontSize: 16)),
-        backgroundColor: Colors.white,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 6,
+        content: Text(message),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -93,36 +89,30 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.xl,
+                  vertical: AppSpacing.xl,
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const AppLogoWidget(size: 80),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppSpacing.lg),
                     Lottie.asset('assets/general_icon.json', height: 90),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: AppSpacing.xl),
                     Text(
                       'Login',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: primary,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                        fontSize: 28,
-                      ),
+                      style: theme.textTheme.headlineSmall,
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.sm),
                     Text(
                       'Welcome back! Please login to continue.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.black54,
-                        fontWeight: FontWeight.w400,
-                        fontSize: 16,
-                      ),
+                      style: theme.textTheme.bodyMedium,
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: AppSpacing.xl),
                     Form(
                       key: _formKey,
                       child: Column(
@@ -135,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ? null
                                 : 'Enter a valid email',
                           ),
-                          const SizedBox(height: 18),
+                          const SizedBox(height: AppSpacing.lg),
                           _InputField(
                             controller: _passwordController,
                             label: 'Password',
@@ -147,45 +137,22 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: AppSpacing.xl),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primary,
-                          elevation: 3,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
                         onPressed: _login,
-                        child: const Text(
-                          'Login',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                            color: Colors.white,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
+                        child: const Text('Login'),
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: AppSpacing.lg),
                     TextButton(
                       onPressed: _loading
                           ? null
                           : () {
                               Navigator.of(context).pushNamed(AppRoutes.signup);
                             },
-                      child: Text(
-                        "Don't have an account? Sign up",
-                        style: TextStyle(
-                          color: primary,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 15,
-                        ),
-                      ),
+                      child: const Text("Don't have an account? Sign up"),
                     ),
                   ],
                 ),
@@ -219,35 +186,15 @@ class _InputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 0),
-      child: TextFormField(
-        controller: controller,
-        obscureText: obscureText,
-        keyboardType: keyboardType,
-        validator: validator,
-        style: const TextStyle(fontSize: 16),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(color: Colors.black54, fontWeight: FontWeight.w500),
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: primary),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: primary, width: 1),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: primary, width: 2),
-          ),
-        ),
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      validator: validator,
+      style: Theme.of(context).textTheme.bodyLarge,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: Theme.of(context).textTheme.bodyMedium,
       ),
     );
   }

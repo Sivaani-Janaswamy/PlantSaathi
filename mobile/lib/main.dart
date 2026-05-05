@@ -34,6 +34,8 @@ class PlantSaathiApp extends StatelessWidget {
     return MaterialApp(
       title: 'PlantSaathi',
       theme: appTheme,
+      darkTheme: darkTheme,
+      themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: false,
       initialRoute: AppRoutes.splash,
       routes: {
