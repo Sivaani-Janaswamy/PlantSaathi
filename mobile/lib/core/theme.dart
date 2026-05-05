@@ -223,7 +223,6 @@ final ThemeData appTheme = ThemeData(
 
   // Interaction
   splashFactory: InkRipple.splashFactory,
-  useMaterial3: true,
 );
 
 /// Dark theme - Material 3 compliant
