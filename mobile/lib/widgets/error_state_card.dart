@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../core/design_tokens.dart';
+
 enum ErrorType {
   network,
   timeout,
@@ -136,9 +138,8 @@ class ErrorStateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
     final errorColor = theme.colorScheme.error;
-    final accent = errorColor.withOpacity(0.12);
+    final accent = errorColor.withValues(alpha: 0.12);
 
     IconData getErrorIcon() {
       switch (errorType) {
@@ -175,17 +176,10 @@ class ErrorStateCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0F000000),
-            blurRadius: 18,
-            offset: Offset(0, 8),
-          ),
-        ],
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -195,7 +189,7 @@ class ErrorStateCard extends StatelessWidget {
             height: 56,
             decoration: BoxDecoration(
               color: accent,
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: Icon(
               getErrorIcon(),
@@ -203,17 +197,16 @@ class ErrorStateCard extends StatelessWidget {
               size: 30,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           Text(
             message,
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.black87,
               height: 1.4,
             ),
           ),
           if (onRetry != null && !isLoading) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -221,42 +214,29 @@ class ErrorStateCard extends StatelessWidget {
                   HapticFeedback.lightImpact();
                   onRetry!();
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 0,
-                ),
                 child: Text(
                   getRetryText(),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
+                  style: theme.textTheme.labelLarge,
                 ),
               ),
             ),
           ],
           if (isLoading) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             const SizedBox(
               width: 20,
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4CAF50)),
               ),
             ),
           ],
           if (errorType == ErrorType.network || errorType == ErrorType.timeout) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Text(
               'Tip: Check your connection and ensure you have a stable internet connection.',
               style: theme.textTheme.bodySmall?.copyWith(
-                color: Colors.grey[600],
+                color: theme.colorScheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
             ),

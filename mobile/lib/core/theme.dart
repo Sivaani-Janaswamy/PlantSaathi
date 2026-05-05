@@ -219,7 +219,6 @@ final ThemeData appTheme = ThemeData(
       borderRadius: BorderRadius.circular(AppRadius.md),
     ),
     behavior: SnackBarBehavior.floating,
-    margin: const EdgeInsets.all(AppSpacing.lg),
   ),
 
   // Interaction
@@ -235,7 +234,6 @@ final ThemeData darkTheme = ThemeData(
     seedColor: _plantPrimary,
     brightness: Brightness.dark,
     surface: _darkSurface,
-    background: _darkBackground,
     primary: _plantPrimary,
     secondary: _plantSecondary,
     error: _plantError,
@@ -413,7 +411,6 @@ final ThemeData darkTheme = ThemeData(
       borderRadius: BorderRadius.circular(AppRadius.md),
     ),
     behavior: SnackBarBehavior.floating,
-    margin: const EdgeInsets.all(AppSpacing.lg),
   ),
 
   splashFactory: InkRipple.splashFactory,
