@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS plants (
 
 CREATE INDEX idx_plants_type ON plants(plant_type);
 CREATE INDEX idx_plants_difficulty ON plants(difficulty_level);
+CREATE INDEX idx_plants_search ON plants(common_name, scientific_name);
 
 -- Plant images
 CREATE TABLE IF NOT EXISTS plant_images (
@@ -79,6 +80,7 @@ CREATE POLICY "Users can delete own favorites" ON user_favorites
   FOR DELETE USING (auth.uid() = user_id);
 
 CREATE INDEX idx_user_favorites_user_id ON user_favorites(user_id);
+CREATE INDEX idx_user_favorites_plant_id ON user_favorites(plant_id);
 
 -- Care history
 CREATE TABLE IF NOT EXISTS care_history (

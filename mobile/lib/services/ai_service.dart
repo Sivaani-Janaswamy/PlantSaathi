@@ -6,10 +6,13 @@ class AiService {
 
   final ApiService _api;
 
-  Future<AiAnswer> ask(String question) async {
-    final response = await _api.post('/ai/ask', data: {'question': question});
-    final data = _unwrapMap(response.data);
-    final payload = _unwrapMap(data['data'] ?? data);
+  Future<AiAnswer> ask(String question, {String? plantId}) async {
+    final data = {'message': question};
+    if (plantId != null) data['plantId'] = plantId;
+
+    final response = await _api.post('/ai/chat', data: data);
+    final responseData = _unwrapMap(response.data);
+    final payload = _unwrapMap(responseData['data'] ?? responseData);
     return AiAnswer.fromJson(payload);
   }
 

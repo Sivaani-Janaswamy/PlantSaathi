@@ -36,7 +36,7 @@ exports.getPlantById = async (id, userId = null) => {
 	const dbStart = Date.now();
 	const { data, error } = await supabase
 		.from('plants')
-		.select('*')
+		.select('*, plant_images(id, image_url, alt_text, is_primary)')
 		.eq('id', id)
 		.single();
 	const dbMs = Date.now() - dbStart;

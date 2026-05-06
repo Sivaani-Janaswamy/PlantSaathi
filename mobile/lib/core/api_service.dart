@@ -37,7 +37,7 @@ class ApiService {
 
   static const String _baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://localhost:5000',
+    defaultValue: 'http://localhost:3000',
   );
   late final Dio _dio;
   final _sessionManager = SessionManager.instance;
