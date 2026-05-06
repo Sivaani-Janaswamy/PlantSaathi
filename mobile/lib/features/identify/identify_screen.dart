@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../core/design_tokens.dart';
 import '../../models/plant.dart';
 import '../../services/plant_service.dart';
 import '../../widgets/app_section_header.dart';
